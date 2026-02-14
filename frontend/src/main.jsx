@@ -6,6 +6,7 @@ import Worlds from './pages/Worlds.jsx';
 import CreateWorld from './pages/CreateWorld.jsx';
 import Characters from './pages/Characters.jsx';
 import CharacterView from './pages/CharacterView.jsx';
+import NoteView from './pages/NoteView.jsx';
 import TransitionOverlay from './components/TransitionOverlay.jsx';
 import faviconUrl from './imagens/fiveIcon.png';
 import fundoLoginImage from './imagens/fundoLogin.jpg';
@@ -13,6 +14,7 @@ import './styles/global.css';
 
 const App = () => {
   const path = window.location.pathname;
+  if (/^\/notes\/\d+/.test(path)) return <NoteView />;
   if (/^\/characters\/\d+/.test(path)) return <CharacterView />;
   if (/^\/worlds\/\d+\/characters/.test(path)) return <Characters />;
   if (path.includes('register')) return <Register />;

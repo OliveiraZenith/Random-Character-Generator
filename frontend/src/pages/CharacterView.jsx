@@ -28,8 +28,26 @@ const CharacterView = () => {
 
   const token = useMemo(() => localStorage.getItem('rcc_token'), []);
   const characterId = useMemo(() => parseCharacterId(), []);
+  const syncChannel = useMemo(() => new BroadcastChannel('rcc-sync'), []);
+
+  const postSyncMessage = (message) => {
+    try {
+      syncChannel.postMessage(message);
+    } catch (err) {
+      try {
+        const fresh = new BroadcastChannel('rcc-sync');
+        fresh.postMessage(message);
+      } catch (innerErr) {
+        console.error('Sync broadcast failed', innerErr);
+      }
+    }
+  };
 
   const isDirty = () => JSON.stringify(normalizePayload(form)) !== JSON.stringify(normalizePayload(original));
+
+  useEffect(() => {
+    return () => syncChannel.close();
+  }, [syncChannel]);
 
   useEffect(() => {
     if (!token || !characterId) {
@@ -97,6 +115,7 @@ const CharacterView = () => {
       };
       setForm(next);
       setOriginal(next);
+      postSyncMessage({ type: 'characterUpdated', payload: { ...next, id: characterId, worldId } });
       setMessage('Personagem salvo com sucesso!');
       setTimeout(() => setMessage(''), 2500);
     } catch (err) {

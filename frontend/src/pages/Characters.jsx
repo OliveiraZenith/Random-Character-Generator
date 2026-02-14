@@ -5,9 +5,14 @@ import {
   createCharacter as apiCreateCharacter,
   deleteCharacter as apiDeleteCharacter,
   getCharactersByWorld,
-  getWorlds
+  getNotesByWorld,
+  getWorlds,
+  createNote as apiCreateNote,
+  updateNote as apiUpdateNote,
+  deleteNote as apiDeleteNote
 } from '../services/api.js';
 import { navigateWithTransition } from '../services/navigation.js';
+import NotesPanel from '../components/NotesPanel.jsx';
 
 const parseWorldId = () => {
   const parts = window.location.pathname.split('/').filter(Boolean);
@@ -22,9 +27,19 @@ const Characters = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState('');
   const [modal, setModal] = useState({ open: false, character: null });
+  const [notes, setNotes] = useState([]);
+  const [notesLoading, setNotesLoading] = useState(false);
+  const [notesError, setNotesError] = useState('');
+  const [noteSavingId, setNoteSavingId] = useState(null);
+  const [noteModal, setNoteModal] = useState({ open: false, note: null });
 
   const token = useMemo(() => localStorage.getItem('rcc_token'), []);
   const worldId = useMemo(() => parseWorldId(), []);
+  const syncChannel = useMemo(() => new BroadcastChannel('rcc-sync'), []);
+
+  useEffect(() => {
+    return () => syncChannel.close();
+  }, [syncChannel]);
 
   useEffect(() => {
     if (!token || !worldId) {
@@ -36,7 +51,7 @@ const Characters = () => {
       setLoading(true);
       setError('');
       try {
-        const [worldsData, charactersData] = await Promise.all([
+        const [, charactersData] = await Promise.all([
           getWorlds(token),
           getCharactersByWorld(token, worldId)
         ]);
@@ -50,6 +65,48 @@ const Characters = () => {
 
     fetchData();
   }, [token, worldId]);
+
+  const fetchNotes = async () => {
+    setNotesLoading(true);
+    setNotesError('');
+    try {
+      const data = await getNotesByWorld(token, worldId);
+      setNotes(data);
+    } catch (err) {
+      setNotesError(err.message || 'Erro ao carregar anotações.');
+    } finally {
+      setNotesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!token || !worldId) return;
+    fetchNotes();
+  }, [token, worldId]);
+
+  useEffect(() => {
+    const handler = (event) => {
+      const { type, payload } = event.data || {};
+      if (!payload || (payload.worldId && payload.worldId !== worldId)) return;
+
+      if (type === 'noteUpdated') {
+        setNotes((prev) => {
+          const exists = prev.some((n) => n.id === payload.id);
+          if (exists) {
+            return prev.map((n) => (n.id === payload.id ? { ...n, ...payload } : n));
+          }
+          return [payload, ...prev];
+        });
+      }
+
+      if (type === 'characterUpdated') {
+        setCharacters((prev) => prev.map((c) => (c.id === payload.id ? { ...c, ...payload } : c)));
+      }
+    };
+
+    syncChannel.addEventListener('message', handler);
+    return () => syncChannel.removeEventListener('message', handler);
+  }, [syncChannel, worldId]);
 
   const handleCreate = async (payload) => {
     setActionLoading(true);
@@ -93,6 +150,52 @@ const Characters = () => {
     navigateWithTransition('/worlds');
   };
 
+  const handleAddNote = async () => {
+    if (!token || !worldId) return;
+    setNoteSavingId('new');
+    setNotesError('');
+    try {
+      const created = await apiCreateNote(token, worldId, { title: 'Nova anotação', content: '' });
+      setNotes((prev) => [created, ...prev]);
+    } catch (err) {
+      setNotesError(err.message || 'Erro ao criar anotação.');
+    } finally {
+      setNoteSavingId(null);
+    }
+  };
+
+  const handleSaveNote = async (id, payload) => {
+    setNoteSavingId(id);
+    setNotesError('');
+    try {
+      const updated = await apiUpdateNote(token, id, payload);
+      setNotes((prev) => prev.map((note) => (note.id === id ? updated : note)));
+    } catch (err) {
+      setNotesError(err.message || 'Erro ao salvar anotação.');
+    } finally {
+      setNoteSavingId(null);
+    }
+  };
+
+  const handleDeleteNote = async (note) => {
+    setNoteModal({ open: true, note });
+  };
+
+  const confirmDeleteNote = async () => {
+    if (!noteModal.note) return;
+    setNoteSavingId(noteModal.note.id);
+    setNotesError('');
+    try {
+      await apiDeleteNote(token, noteModal.note.id);
+      setNotes((prev) => prev.filter((n) => n.id !== noteModal.note.id));
+      setNoteModal({ open: false, note: null });
+    } catch (err) {
+      setNotesError(err.message || 'Erro ao excluir anotação.');
+    } finally {
+      setNoteSavingId(null);
+    }
+  };
+
   return (
     <>
       <div className="register-page characters-page" role="presentation">
@@ -123,6 +226,16 @@ const Characters = () => {
             <div className="characters-column">
               <CharacterForm onCreate={handleCreate} loading={actionLoading} />
             </div>
+
+            <NotesPanel
+              notes={notes}
+              loading={notesLoading}
+              error={notesError}
+              savingId={noteSavingId}
+              onAdd={handleAddNote}
+              onSave={handleSaveNote}
+              onDelete={handleDeleteNote}
+            />
           </div>
         </div>
       </div>
@@ -137,6 +250,23 @@ const Characters = () => {
                 Cancelar
               </button>
               <button className="button-primary" type="button" onClick={confirmDelete} disabled={actionLoading}>
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {noteModal.open && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-card">
+            <h3 className="modal-title">Excluir anotação</h3>
+            <p className="modal-text">Deseja remover "{noteModal.note?.title || 'Nova anotação'}"?</p>
+            <div className="modal-actions">
+              <button className="button-secondary" type="button" onClick={() => setNoteModal({ open: false, note: null })}>
+                Cancelar
+              </button>
+              <button className="button-primary" type="button" onClick={confirmDeleteNote} disabled={noteSavingId === noteModal.note?.id}>
                 Excluir
               </button>
             </div>

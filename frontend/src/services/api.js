@@ -84,4 +84,39 @@ export const getCharacterById = async (token, id) => {
   return data;
 };
 
+// Notes
+export const getNotesByWorld = async (token, worldId) => {
+  const { data } = await api.get(`/worlds/${worldId}/notes`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return data;
+};
+
+export const getNoteById = async (token, id) => {
+  const { data } = await api.get(`/notes/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return data;
+};
+
+export const createNote = async (token, worldId, payload) => {
+  const { data } = await api.post(`/worlds/${worldId}/notes`, payload, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return data;
+};
+
+export const updateNote = async (token, id, payload) => {
+  const { data } = await api.put(`/notes/${id}`, payload, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return data;
+};
+
+export const deleteNote = async (token, id) => {
+  await api.delete(`/notes/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+};
+
 export default api;
