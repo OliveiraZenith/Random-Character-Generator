@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Theme {
+  fantasia
+  medieval
+  atual
+}
+
+enum RandomType {
+  name
+  race
+  appearance
+  story
+}
+
+enum Gender {
+  male
+  female
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  name         String
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  worlds       World[]
+
+  @@map("users")
+}
+
+model World {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  name      String
+  theme     Theme
+  country   String?   @db.VarChar(191)
+  createdAt DateTime  @default(now()) @map("created_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  characters Character[]
+
+  @@map("worlds")
+}
+
+model Character {
+  id                Int       @id @default(autoincrement())
+  worldId           Int       @map("world_id")
+  name              String
+  gender            Gender
+  race              String
+  appearance        String    @db.Text
+  story             String    @db.Text
+  createdAt         DateTime  @default(now()) @map("created_at")
+  world             World     @relation(fields: [worldId], references: [id], onDelete: Cascade)
+
+  @@map("characters")
+}
+
+model RandomData {
+  id      Int        @id @default(autoincrement())
+  theme   Theme
+  country String?    @db.VarChar(191)
+  type    RandomType
+  value   String     @db.Text
+  gender  Gender?
+
+  @@map("random_data")
+}
