@@ -4,6 +4,7 @@ dotenv.config();
 import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
+import compression from 'compression';
 import prisma from './prisma/client.js';
 import authRoutes from './routes/authRoutes.js';
 import worldRoutes from './routes/worldRoutes.js';
@@ -13,6 +14,7 @@ const app = express();
 
 app.use(morgan('dev'));
 app.use(cors());
+app.use(compression());
 app.use(express.json());
 
 app.use('/auth', authRoutes);
