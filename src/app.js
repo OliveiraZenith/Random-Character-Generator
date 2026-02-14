@@ -9,6 +9,7 @@ import prisma from './prisma/client.js';
 import authRoutes from './routes/authRoutes.js';
 import worldRoutes from './routes/worldRoutes.js';
 import characterRoutes from './routes/characterRoutes.js';
+import annotationRoutes from './routes/annotationRoutes.js';
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use(express.json());
 app.use('/auth', authRoutes);
 app.use('/worlds', worldRoutes);
 app.use('/', characterRoutes);
+app.use('/', annotationRoutes);
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 

@@ -1,6 +1,12 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const resolveJwtSecret = () => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET not configured.');
+  }
+  return secret;
+};
 
 const authMiddleware = (req, res, next) => {
   try {
@@ -9,16 +15,13 @@ const authMiddleware = (req, res, next) => {
       return res.status(401).json({ message: 'Authorization token missing.' });
     }
 
-    if (!JWT_SECRET) {
-      return res.status(500).json({ message: 'JWT_SECRET not configured.' });
-    }
-
     const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, resolveJwtSecret());
     req.userId = decoded.userId;
     return next();
   } catch (error) {
-    return res.status(401).json({ message: 'Invalid or expired token.', error: error.message });
+    const status = error.message.includes('configured') ? 500 : 401;
+    return res.status(status).json({ message: 'Invalid or expired token.', error: error.message });
   }
 };
 

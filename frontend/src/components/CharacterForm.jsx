@@ -73,22 +73,28 @@ const CharacterForm = ({ onCreate, loading }) => {
       <form className="create-form" onSubmit={handleSubmit}>
         <div className="field-group">
           <label className="label">Gênero</label>
-          <div className="gender-pills">
-            <button
-              type="button"
-              className={`pill ${form.gender === 'male' ? 'pill-active' : ''}`}
-              onClick={() => handleChange('gender', 'male')}
-              disabled={loading}
-            >
-              Masculino
-            </button>
-            <button
-              type="button"
-              className={`pill ${form.gender === 'female' ? 'pill-active' : ''}`}
-              onClick={() => handleChange('gender', 'female')}
-              disabled={loading}
-            >
-              Feminino
+          <div className="gender-row">
+            <div className="gender-pills">
+              <button
+                type="button"
+                className={`pill ${form.gender === 'male' ? 'pill-active' : ''}`}
+                onClick={() => handleChange('gender', 'male')}
+                disabled={loading}
+              >
+                Masculino
+              </button>
+              <button
+                type="button"
+                className={`pill ${form.gender === 'female' ? 'pill-active' : ''}`}
+                onClick={() => handleChange('gender', 'female')}
+                disabled={loading}
+              >
+                Feminino
+              </button>
+            </div>
+
+            <button className="button-primary button-primary-compact" type="submit" disabled={loading}>
+              {loading ? 'Gerando...' : 'Criar personagem'}
             </button>
           </div>
         </div>
@@ -192,7 +198,7 @@ const CharacterForm = ({ onCreate, loading }) => {
         {error && <div className="alert error" role="alert">{error}</div>}
         {success && <div className="alert success" role="status">{success}</div>}
 
-        <button className="button-primary" type="submit" disabled={loading}>
+        <button className="button-primary button-primary-mobile" type="submit" disabled={loading}>
           {loading ? 'Gerando...' : 'Criar personagem'}
         </button>
       </form>

@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../prisma-client"
 }
 
 datasource db {
@@ -45,6 +46,7 @@ model World {
   createdAt DateTime  @default(now()) @map("created_at")
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   characters Character[]
+  annotations Annotation[]
 
   @@map("worlds")
 }
@@ -72,4 +74,16 @@ model RandomData {
   gender  Gender?
 
   @@map("random_data")
+}
+
+model Annotation {
+  id        Int      @id @default(autoincrement())
+  worldId   Int      @map("world_id")
+  title     String
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  world     World    @relation(fields: [worldId], references: [id], onDelete: Cascade)
+
+  @@map("anotacoes")
 }

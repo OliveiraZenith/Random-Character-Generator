@@ -2,18 +2,24 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import prisma from '../prisma/client.js';
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
-const generateToken = (userId) => {
-  if (!JWT_SECRET) {
+const resolveJwtSecret = () => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
     throw new Error('JWT_SECRET is not configured');
   }
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: '7d' });
+  return secret;
+};
+
+const generateToken = (userId) => {
+  const secret = resolveJwtSecret();
+  return jwt.sign({ userId }, secret, { expiresIn: '7d' });
 };
 
 export const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
+
+    resolveJwtSecret(); // fail fast before side effects
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Name, email, and password are required.' });
@@ -39,6 +45,8 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    resolveJwtSecret();
 
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required.' });
