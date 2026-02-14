@@ -32,9 +32,14 @@ const RegisterForm = () => {
     setLoading(true);
     try {
       const data = await register({ name, email, password });
-      setSuccess('Conta criada! Faça login para continuar.');
+      setSuccess('Conta criada! Entrando...');
       localStorage.setItem('rcc_token', data.token);
-      localStorage.setItem('rcc_user_name', name);
+      if (data.user?.name) {
+        localStorage.setItem('rcc_user_name', data.user.name);
+      } else {
+        localStorage.setItem('rcc_user_name', name);
+      }
+      setTimeout(() => navigateWithTransition('/worlds'), 400);
     } catch (err) {
       setError(err.message || 'Erro ao criar conta.');
     } finally {
