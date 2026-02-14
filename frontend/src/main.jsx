@@ -8,6 +8,7 @@ import Characters from './pages/Characters.jsx';
 import CharacterView from './pages/CharacterView.jsx';
 import TransitionOverlay from './components/TransitionOverlay.jsx';
 import faviconUrl from './imagens/fiveIcon.png';
+import fundoLoginImage from './imagens/fundoLogin.jpg';
 import './styles/global.css';
 
 const App = () => {
@@ -32,6 +33,9 @@ const ensureFavicon = () => {
 };
 
 ensureFavicon();
+
+// Resolve background image through Vite and expose to CSS.
+document.documentElement.style.setProperty('--bg-login-image', `url(${fundoLoginImage})`);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
