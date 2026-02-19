@@ -5,11 +5,31 @@ const genderLabel = {
   female: 'Feminino'
 };
 
-const CharacterCard = ({ character, onEdit, onDelete, disabled }) => {
+const CharacterCard = ({ character, onEdit, onDelete, disabled, dragProps }) => {
   const [open, setOpen] = useState(false);
 
+  const dragging = dragProps?.isDragging;
+  const dragOver = dragProps?.isDragOver;
+  const draggable = Boolean(dragProps?.draggable);
+  const cardClass = [
+    'character-card glow-hover fade-in',
+    draggable ? 'is-draggable' : '',
+    dragging ? 'is-dragging' : '',
+    dragOver ? 'is-drag-over' : ''
+  ].filter(Boolean).join(' ');
+
   return (
-    <div className="character-card glow-hover fade-in" role="article">
+    <div
+      className={cardClass}
+      role="article"
+      draggable={draggable}
+      aria-grabbed={dragging || undefined}
+      onDragStart={dragProps?.onDragStart}
+      onDragOver={dragProps?.onDragOver}
+      onDragLeave={dragProps?.onDragLeave}
+      onDrop={dragProps?.onDrop}
+      onDragEnd={dragProps?.onDragEnd}
+    >
       <button
         type="button"
         className="character-summary"
@@ -17,7 +37,16 @@ const CharacterCard = ({ character, onEdit, onDelete, disabled }) => {
         disabled={disabled}
         aria-expanded={open}
       >
-        <span className="character-name">{character.name}</span>
+        <div className="character-summary-head">
+          <span className="character-name">{character.name}</span>
+          {Array.isArray(character.tags) && character.tags.length > 0 && (
+            <div className="chip-row chip-row-tight" aria-label="Tags do personagem">
+              {character.tags.map((tag) => (
+                <span key={tag} className="chip chip-small">{tag}</span>
+              ))}
+            </div>
+          )}
+        </div>
         <span className="character-arrow" aria-hidden>{open ? '▲' : '▼'}</span>
       </button>
 

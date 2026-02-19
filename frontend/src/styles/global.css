@@ -764,6 +764,46 @@ body {
   padding-right: 4px;
 }
 
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.chip-row-tight {
+  margin-top: 6px;
+}
+
+.chip-row-compact {
+  margin-top: 4px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(240, 180, 107, 0.16), rgba(240, 180, 107, 0.08));
+  border: 1px solid rgba(240, 180, 107, 0.35);
+  color: #f3d5a1;
+  font-size: 12px;
+  letter-spacing: 0.2px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  text-transform: lowercase;
+}
+
+.chip-small {
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+.chip-ghost {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(240, 180, 107, 0.35);
+}
+
 .note-card {
   background: linear-gradient(180deg, rgba(30, 18, 14, 0.92), rgba(17, 10, 8, 0.95));
   border: 1px solid rgba(240, 180, 107, 0.35);
@@ -773,6 +813,27 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.note-card.is-draggable {
+  cursor: grab;
+  user-select: none;
+}
+
+.note-card.is-draggable:active {
+  cursor: grabbing;
+}
+
+.note-card.is-dragging {
+  opacity: 0.92;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.5), 0 0 18px rgba(240, 180, 107, 0.32);
+}
+
+.note-card.is-drag-over {
+  outline: 2px dashed rgba(240, 180, 107, 0.45);
+  outline-offset: -6px;
+  transform: translateY(-2px);
+  transition: transform 0.15s ease;
 }
 
 .note-summary-row {
@@ -1165,6 +1226,27 @@ body {
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45), 0 0 14px rgba(240, 180, 107, 0.28);
 }
 
+.character-card.is-draggable {
+  cursor: grab;
+  user-select: none;
+}
+
+.character-card.is-draggable:active {
+  cursor: grabbing;
+}
+
+.character-card.is-dragging {
+  opacity: 0.92;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.5), 0 0 18px rgba(240, 180, 107, 0.32);
+}
+
+.character-card.is-drag-over {
+  outline: 2px dashed rgba(240, 180, 107, 0.45);
+  outline-offset: -6px;
+  transform: translateY(-2px);
+  transition: transform 0.15s ease;
+}
+
 .character-name {
   font-family: var(--font-body);
   color: #f3d5a1;
@@ -1215,6 +1297,14 @@ body {
   margin: 6px 0;
   color: #fdf7ed;
   line-height: 1.45;
+  white-space: pre-line;
+}
+
+.character-body strong {
+  color: #f0c46b;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  text-shadow: 0 1px 6px rgba(240, 180, 107, 0.35);
 }
 
 .character-actions {

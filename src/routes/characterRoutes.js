@@ -4,7 +4,8 @@ import {
   deleteCharacter,
   getCharacterById,
   listCharactersByWorld,
-  updateCharacter
+  updateCharacter,
+  reorderCharacters
 } from '../controllers/characterController.js';
 import authMiddleware from '../middleware/auth.js';
 
@@ -14,6 +15,7 @@ router.post('/worlds/:worldId/characters', authMiddleware, createCharacter);
 router.get('/worlds/:id/characters', authMiddleware, listCharactersByWorld);
 router.get('/characters/:id', authMiddleware, getCharacterById);
 router.put('/characters/:id', authMiddleware, updateCharacter);
+router.put('/worlds/:worldId/characters/reorder', authMiddleware, reorderCharacters);
 router.delete('/characters/:id', authMiddleware, deleteCharacter);
 
 export default router;

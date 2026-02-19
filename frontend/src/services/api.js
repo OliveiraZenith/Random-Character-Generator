@@ -50,15 +50,28 @@ export const deleteWorld = async (token, id) => {
 };
 
 // Characters
-export const getCharactersByWorld = async (token, worldId) => {
+export const getCharactersByWorld = async (token, worldId, tags) => {
+  const params = {};
+  if (tags && tags.length) {
+    params.tags = tags.join(',');
+  }
+
   const { data } = await api.get(`/worlds/${worldId}/characters`, {
     headers: { Authorization: `Bearer ${token}` },
+    params
   });
   return data;
 };
 
 export const createCharacter = async (token, worldId, payload) => {
   const { data } = await api.post(`/worlds/${worldId}/characters`, payload, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return data;
+};
+
+export const reorderCharacters = async (token, worldId, order) => {
+  const { data } = await api.put(`/worlds/${worldId}/characters/reorder`, { order }, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return data;
@@ -92,6 +105,13 @@ export const getNotesByWorld = async (token, worldId) => {
   return data;
 };
 
+export const getTags = async (token) => {
+  const { data } = await api.get('/tags', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return data;
+};
+
 export const getNoteById = async (token, id) => {
   const { data } = await api.get(`/notes/${id}`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -101,6 +121,13 @@ export const getNoteById = async (token, id) => {
 
 export const createNote = async (token, worldId, payload) => {
   const { data } = await api.post(`/worlds/${worldId}/notes`, payload, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return data;
+};
+
+export const reorderNotes = async (token, worldId, order) => {
+  const { data } = await api.put(`/worlds/${worldId}/notes/reorder`, { order }, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return data;

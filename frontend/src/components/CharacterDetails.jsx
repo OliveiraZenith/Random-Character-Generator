@@ -22,6 +22,26 @@ const CharacterDetails = ({ name, form, onFieldChange, onSave, onBack, loading, 
           value={form.name || ''}
           onChange={(val) => onFieldChange('name', val)}
         />
+
+        <EditableField
+          label="Tags (separe por vírgula)"
+          name="tags"
+          placeholder="mago, vilão, npc, principal"
+          value={form.tags || ''}
+          onChange={(val) => onFieldChange('tags', val)}
+        />
+
+        {form.tags && (
+          <div className="chip-row chip-row-compact" aria-label="Tags atuais">
+            {form.tags
+              .split(',')
+              .map((tag) => tag.trim())
+              .filter(Boolean)
+              .map((tag) => (
+                <span key={tag} className="chip chip-ghost">{tag.toLowerCase()}</span>
+              ))}
+          </div>
+        )}
         <EditableField
           label="Gênero"
           name="gender"

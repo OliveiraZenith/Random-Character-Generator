@@ -8,14 +8,18 @@ const NotesPanel = ({
   onAdd,
   onSave,
   onDelete,
-  onOpen
+  onOpen,
+  onReorder,
+  reordering = false
 }) => {
   const [drafts, setDrafts] = useState({});
   const [openNotes, setOpenNotes] = useState({});
   const [savingAll, setSavingAll] = useState(false);
+  const [draggingId, setDraggingId] = useState(null);
+  const [dragOverId, setDragOverId] = useState(null);
 
   useEffect(() => {
-    const initial = Object.fromEntries(
+    const initialDrafts = Object.fromEntries(
       (notes || []).map((note) => [
         note.id,
         {
@@ -25,10 +29,27 @@ const NotesPanel = ({
         }
       ])
     );
-    setDrafts(initial);
+    setDrafts(initialDrafts);
 
-    const initialOpen = Object.fromEntries((notes || []).map((note) => [note.id, true]));
-    setOpenNotes(initialOpen);
+    setOpenNotes((prev) => {
+      const next = { ...prev };
+      const validIds = new Set();
+
+      (notes || []).forEach((note) => {
+        validIds.add(note.id);
+        if (next[note.id] === undefined) {
+          next[note.id] = true; // default: open only for new notes
+        }
+      });
+
+      Object.keys(next).forEach((id) => {
+        if (!validIds.has(Number(id))) {
+          delete next[id];
+        }
+      });
+
+      return next;
+    });
   }, [notes]);
 
   const toggleOpen = (id) => {
@@ -43,6 +64,60 @@ const NotesPanel = ({
         [field]: value
       }
     }));
+  };
+
+  const resetDrag = () => {
+    setDraggingId(null);
+    setDragOverId(null);
+  };
+
+  const interactionsLocked = loading || savingAll || reordering;
+
+  const handleDragStart = (event, noteId) => {
+    if (interactionsLocked) return;
+    setDraggingId(noteId);
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', String(noteId));
+  };
+
+  const handleDragOver = (event, noteId) => {
+    if (interactionsLocked) return;
+    event.preventDefault();
+    if (dragOverId !== noteId) {
+      setDragOverId(noteId);
+    }
+  };
+
+  const handleDrop = (event, targetId) => {
+    if (interactionsLocked) return;
+    event.preventDefault();
+    const sourceId = Number(event.dataTransfer.getData('text/plain'));
+    if (!sourceId || sourceId === targetId) {
+      resetDrag();
+      return;
+    }
+
+    const currentIndex = notes.findIndex((n) => n.id === sourceId);
+    const targetIndex = notes.findIndex((n) => n.id === targetId);
+    if (currentIndex === -1 || targetIndex === -1) {
+      resetDrag();
+      return;
+    }
+
+    const updated = [...notes];
+    const [moved] = updated.splice(currentIndex, 1);
+    updated.splice(targetIndex, 0, moved);
+    onReorder?.(updated);
+    resetDrag();
+  };
+
+  const handleDragEnd = () => resetDrag();
+
+  const handleDragLeave = (noteId) => {
+    if (interactionsLocked) return;
+    if (dragOverId === noteId) {
+      setDragOverId(null);
+    }
   };
 
   const getDraft = (note) => drafts[note.id] || { title: note.title, content: note.content };
@@ -110,9 +185,28 @@ const NotesPanel = ({
           const draft = getDraft(note);
           const isSaving = savingId === note.id;
           const isOpen = openNotes[note.id] ?? true;
+          const isDragging = draggingId === note.id;
+          const isDragOver = dragOverId === note.id;
+          const draggable = !interactionsLocked;
+          const cardClass = [
+            'note-card',
+            draggable ? 'is-draggable' : '',
+            isDragging ? 'is-dragging' : '',
+            isDragOver ? 'is-drag-over' : ''
+          ].filter(Boolean).join(' ');
 
           return (
-            <div className="note-card" key={note.id}>
+            <div
+              className={cardClass}
+              key={note.id}
+              draggable={draggable}
+              aria-grabbed={isDragging || undefined}
+              onDragStart={(event) => handleDragStart(event, note.id)}
+              onDragOver={(event) => handleDragOver(event, note.id)}
+              onDragLeave={() => handleDragLeave(note.id)}
+              onDrop={(event) => handleDrop(event, note.id)}
+              onDragEnd={handleDragEnd}
+            >
               <div className="note-summary-row">
                 <button
                   type="button"

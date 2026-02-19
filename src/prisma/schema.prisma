@@ -59,8 +59,10 @@ model Character {
   race              String
   appearance        String    @db.Text
   story             String    @db.Text
+  order             Int       @default(0)
   createdAt         DateTime  @default(now()) @map("created_at")
   world             World     @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  characterTags     CharacterTag[]
 
   @@map("characters")
 }
@@ -81,9 +83,32 @@ model Annotation {
   worldId   Int      @map("world_id")
   title     String
   content   String   @db.Text
+  order     Int      @default(0)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   world     World    @relation(fields: [worldId], references: [id], onDelete: Cascade)
 
   @@map("anotacoes")
+}
+
+model Tag {
+  id        Int             @id @default(autoincrement())
+  name      String          @unique
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+  characterTags CharacterTag[]
+
+  @@map("tags")
+}
+
+model CharacterTag {
+  characterId Int @map("character_id")
+  tagId       Int @map("tag_id")
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  tag         Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([characterId, tagId])
+  @@index([tagId], map: "idx_character_tag_tag")
+  @@index([characterId], map: "idx_character_tag_character")
+  @@map("character_tags")
 }

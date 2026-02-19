@@ -10,6 +10,7 @@ import authRoutes from './routes/authRoutes.js';
 import worldRoutes from './routes/worldRoutes.js';
 import characterRoutes from './routes/characterRoutes.js';
 import annotationRoutes from './routes/annotationRoutes.js';
+import tagRoutes from './routes/tagRoutes.js';
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use('/auth', authRoutes);
 app.use('/worlds', worldRoutes);
 app.use('/', characterRoutes);
 app.use('/', annotationRoutes);
+app.use('/', tagRoutes);
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 

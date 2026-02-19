@@ -16,7 +16,10 @@ export const listAnnotationsByWorld = async (req, res) => {
 
     const notes = await prisma.annotation.findMany({
       where: { worldId: world.id },
-      orderBy: { updatedAt: 'desc' }
+      orderBy: [
+        { order: 'desc' },
+        { updatedAt: 'desc' }
+      ]
     });
 
     return res.status(200).json(notes);
@@ -35,11 +38,14 @@ export const createAnnotation = async (req, res) => {
       return res.status(404).json({ message: 'World not found.' });
     }
 
+    const currentCount = await prisma.annotation.count({ where: { worldId: world.id } });
+
     const note = await prisma.annotation.create({
       data: {
         worldId: world.id,
         title: title.trim() || 'Sem título',
-        content: content || ''
+        content: content || '',
+        order: currentCount + 1
       }
     });
 
@@ -112,5 +118,55 @@ export const deleteAnnotation = async (req, res) => {
     return res.status(200).json({ message: 'Annotation deleted successfully.' });
   } catch (error) {
     return res.status(500).json({ message: 'Failed to delete annotation.', error: error.message });
+  }
+};
+
+export const reorderAnnotations = async (req, res) => {
+  try {
+    const worldId = Number(req.params.worldId || req.params.id);
+    const { order } = req.body;
+
+    if (!Array.isArray(order) || !order.length) {
+      return res.status(400).json({ message: 'Order array is required.' });
+    }
+
+    const world = await ensureWorldOwnership(worldId, req.userId);
+    if (!world) {
+      return res.status(404).json({ message: 'World not found.' });
+    }
+
+    const notes = await prisma.annotation.findMany({
+      where: { worldId: world.id },
+      select: { id: true }
+    });
+
+    const validIds = new Set(notes.map((n) => n.id));
+    const filteredOrder = order.filter((id) => validIds.has(Number(id))).map(Number);
+
+    if (!filteredOrder.length) {
+      return res.status(400).json({ message: 'No valid annotation ids to reorder.' });
+    }
+
+    const updates = filteredOrder.map((id, index) =>
+      prisma.annotation.update({
+        where: { id },
+        data: { order: filteredOrder.length - index }
+      })
+    );
+
+    await prisma.$transaction(updates);
+
+    const reordered = await prisma.annotation.findMany({
+      where: { worldId: world.id },
+      orderBy: [
+        { order: 'desc' },
+        { updatedAt: 'desc' }
+      ]
+    });
+
+    return res.status(200).json(reordered);
+  } catch (error) {
+    console.error('[reorderAnnotations] error:', error);
+    return res.status(500).json({ message: 'Failed to reorder annotations.', error: error.message });
   }
 };

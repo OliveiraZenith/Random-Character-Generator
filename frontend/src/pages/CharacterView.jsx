@@ -14,8 +14,23 @@ const normalizePayload = (form) => ({
   gender: form.gender,
   race: form.race?.trim() || null,
   appearance: form.appearance?.trim() || null,
-  history: form.history?.trim() || null
+  history: form.history?.trim() || null,
+  tags: (form.tags || '')
+    .split(',')
+    .map((tag) => tag.trim().toLowerCase())
+    .filter(Boolean)
 });
+
+const extractTags = (data) => {
+  if (Array.isArray(data?.tags)) return data.tags.map((t) => String(t).toLowerCase());
+  if (Array.isArray(data?.characterTags)) {
+    return data.characterTags
+      .map((ct) => ct.tag?.name)
+      .filter(Boolean)
+      .map((t) => t.toLowerCase());
+  }
+  return [];
+};
 
 const CharacterView = () => {
   const [loading, setLoading] = useState(true);
@@ -45,6 +60,20 @@ const CharacterView = () => {
 
   const isDirty = () => JSON.stringify(normalizePayload(form)) !== JSON.stringify(normalizePayload(original));
 
+  const loadFallbackTags = () => {
+    try {
+      const raw = sessionStorage.getItem('rcc_last_character_tags');
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      if (parsed?.id === characterId && Array.isArray(parsed.tags)) {
+        return parsed.tags.map((t) => String(t).toLowerCase());
+      }
+    } catch (err) {
+      // ignore
+    }
+    return [];
+  };
+
   useEffect(() => {
     return () => syncChannel.close();
   }, [syncChannel]);
@@ -61,12 +90,15 @@ const CharacterView = () => {
       setError('');
       try {
         const data = await getCharacterById(token, characterId);
+        const tags = extractTags(data);
+        const mergedTags = tags.length ? tags : loadFallbackTags();
         const base = {
           name: data.name || '',
           gender: data.gender || 'male',
           race: data.race || '',
           appearance: data.appearance || '',
-          history: data.story || data.history || ''
+          history: data.story || data.history || '',
+          tags: mergedTags.join(', ')
         };
         setForm(base);
         setOriginal(base);
@@ -106,16 +138,23 @@ const CharacterView = () => {
     try {
       const payload = normalizePayload(form);
       const updated = await updateCharacter(token, characterId, payload);
+      const tags = extractTags(updated);
       const next = {
         name: updated.name,
         gender: updated.gender || 'male',
         race: updated.race || '',
         appearance: updated.appearance || '',
-        history: updated.story || updated.history || ''
+        history: updated.story || updated.history || '',
+        tags: tags.join(', ')
       };
       setForm(next);
       setOriginal(next);
-      postSyncMessage({ type: 'characterUpdated', payload: { ...next, id: characterId, worldId } });
+      postSyncMessage({ type: 'characterUpdated', payload: { ...next, id: characterId, worldId, tags } });
+      try {
+        sessionStorage.setItem('rcc_last_character_tags', JSON.stringify({ id: characterId, tags }));
+      } catch (err) {
+        // ignore storage issues
+      }
       setMessage('Personagem salvo com sucesso!');
       setTimeout(() => setMessage(''), 2500);
     } catch (err) {

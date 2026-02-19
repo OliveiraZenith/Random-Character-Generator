@@ -5,7 +5,8 @@ const defaultForm = {
   gender: 'male',
   race: '',
   appearance: '',
-  history: ''
+  history: '',
+  tags: ''
 };
 
 const defaultGenerate = {
@@ -54,6 +55,10 @@ const CharacterForm = ({ onCreate, loading }) => {
       race: form.race.trim() || undefined,
       appearance: form.appearance.trim() || undefined,
       history: form.history.trim() || undefined,
+      tags: form.tags
+        .split(',')
+        .map((tag) => tag.trim().toLowerCase())
+        .filter(Boolean),
       generate
     };
 
@@ -121,6 +126,30 @@ const CharacterForm = ({ onCreate, loading }) => {
             onChange={(e) => handleChange('name', e.target.value)}
             disabled={generate.name || loading}
           />
+        </div>
+
+        <div className="field-group">
+          <label className="label" htmlFor="char-tags">Tags (separe por vírgula)</label>
+          <input
+            id="char-tags"
+            className="input input-glow"
+            type="text"
+            placeholder="mago, vilão, npc, principal"
+            value={form.tags}
+            onChange={(e) => handleChange('tags', e.target.value)}
+            disabled={loading}
+          />
+          {form.tags && (
+            <div className="chip-row">
+              {form.tags
+                .split(',')
+                .map((tag) => tag.trim())
+                .filter(Boolean)
+                .map((tag) => (
+                  <span key={tag} className="chip chip-ghost">{tag.toLowerCase()}</span>
+                ))}
+            </div>
+          )}
         </div>
 
         <div className="field-group">

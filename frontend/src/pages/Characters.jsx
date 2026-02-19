@@ -9,10 +9,29 @@ import {
   getWorlds,
   createNote as apiCreateNote,
   updateNote as apiUpdateNote,
-  deleteNote as apiDeleteNote
+  deleteNote as apiDeleteNote,
+  reorderCharacters as apiReorderCharacters,
+  reorderNotes as apiReorderNotes
 } from '../services/api.js';
 import { navigateWithTransition } from '../services/navigation.js';
 import NotesPanel from '../components/NotesPanel.jsx';
+
+const normalizeTagString = (raw) => {
+  if (!raw) return [];
+  return raw
+    .split(',')
+    .map((t) => t.trim().toLowerCase())
+    .filter(Boolean);
+};
+
+const filterCharactersByTags = (characters, search) => {
+  const filters = normalizeTagString(search);
+  if (!filters.length) return characters;
+  return characters.filter((character) => {
+    const tagSet = new Set((character.tags || []).map((t) => t.toLowerCase()));
+    return filters.every((tag) => tagSet.has(tag));
+  });
+};
 
 const parseWorldId = () => {
   const parts = window.location.pathname.split('/').filter(Boolean);
@@ -32,6 +51,9 @@ const Characters = () => {
   const [notesError, setNotesError] = useState('');
   const [noteSavingId, setNoteSavingId] = useState(null);
   const [noteModal, setNoteModal] = useState({ open: false, note: null });
+  const [reorderingCharacters, setReorderingCharacters] = useState(false);
+  const [reorderingNotes, setReorderingNotes] = useState(false);
+  const [searchTags, setSearchTags] = useState('');
 
   const token = useMemo(() => localStorage.getItem('rcc_token'), []);
   const worldId = useMemo(() => parseWorldId(), []);
@@ -143,7 +165,34 @@ const Characters = () => {
   };
 
   const handleEdit = (character) => {
+    // Keep tags for fallback in edit view in case API returns stale data
+    try {
+      sessionStorage.setItem('rcc_last_character_tags', JSON.stringify({ id: character.id, tags: character.tags || [] }));
+    } catch (err) {
+      // ignore storage issues
+    }
     window.open(`/characters/${character.id}`, '_blank');
+  };
+
+  const handleReorder = (nextOrder) => {
+    const previous = characters;
+    setCharacters(nextOrder);
+    setReorderingCharacters(true);
+    setError('');
+
+    const persist = async () => {
+      try {
+        const ordered = await apiReorderCharacters(token, worldId, nextOrder.map((c) => c.id));
+        setCharacters(ordered);
+      } catch (err) {
+        setCharacters(previous);
+        setError(err.message || 'Erro ao salvar ordem dos personagens.');
+      } finally {
+        setReorderingCharacters(false);
+      }
+    };
+
+    persist();
   };
 
   const handleBack = () => {
@@ -181,6 +230,27 @@ const Characters = () => {
     setNoteModal({ open: true, note });
   };
 
+  const handleReorderNotes = (nextOrder) => {
+    const previous = notes;
+    setNotes(nextOrder);
+    setReorderingNotes(true);
+    setNotesError('');
+
+    const persist = async () => {
+      try {
+        const ordered = await apiReorderNotes(token, worldId, nextOrder.map((n) => n.id));
+        setNotes(ordered);
+      } catch (err) {
+        setNotes(previous);
+        setNotesError(err.message || 'Erro ao salvar ordem das anotações.');
+      } finally {
+        setReorderingNotes(false);
+      }
+    };
+
+    persist();
+  };
+
   const confirmDeleteNote = async () => {
     if (!noteModal.note) return;
     setNoteSavingId(noteModal.note.id);
@@ -206,14 +276,27 @@ const Characters = () => {
             <div className="characters-column">
               <h1 className="characters-title">Seus personagens</h1>
 
+              <div className="field-group">
+                <label className="label" htmlFor="tag-search">Buscar por tag</label>
+                <input
+                  id="tag-search"
+                  className="input input-glow"
+                  type="text"
+                  placeholder="mago, vilão, npc"
+                  value={searchTags}
+                  onChange={(e) => setSearchTags(e.target.value)}
+                />
+              </div>
+
               {error && <div className="alert error" role="alert">{error}</div>}
               {loading && <div className="worlds-loading">Carregando personagens...</div>}
 
               <CharacterList
-                characters={characters}
+                characters={filterCharactersByTags(characters, searchTags)}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
-                disabled={actionLoading}
+                onReorder={handleReorder}
+                disabled={actionLoading || reorderingCharacters}
               />
 
               <div className="characters-footer">
@@ -235,6 +318,8 @@ const Characters = () => {
               onAdd={handleAddNote}
               onSave={handleSaveNote}
               onDelete={handleDeleteNote}
+              onReorder={handleReorderNotes}
+              reordering={reorderingNotes}
             />
           </div>
         </div>
