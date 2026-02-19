@@ -1,4 +1,4 @@
-const WorldCard = ({ world, onOpen, onEdit, onDelete }) => {
+const WorldCard = ({ world, onOpen, onEdit, onDelete, onOpenGrid }) => {
   return (
     <div className="world-card glow-hover fade-in" onClick={() => onOpen(world)} role="button" tabIndex={0}>
       <div className="world-card-content">

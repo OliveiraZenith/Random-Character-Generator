@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import CharacterForm from '../components/CharacterForm.jsx';
 import CharacterList from '../components/CharacterList.jsx';
+import SidebarNav from '../components/SidebarNav.jsx';
 import {
   createCharacter as apiCreateCharacter,
   deleteCharacter as apiDeleteCharacter,
@@ -195,10 +196,6 @@ const Characters = () => {
     persist();
   };
 
-  const handleBack = () => {
-    navigateWithTransition('/worlds');
-  };
-
   const handleAddNote = async () => {
     if (!token || !worldId) return;
     setNoteSavingId('new');
@@ -268,6 +265,7 @@ const Characters = () => {
 
   return (
     <>
+      <SidebarNav worldId={worldId} />
       <div className="register-page characters-page" role="presentation">
         <div className="register-overlay" aria-hidden />
         <div className="register-particles" aria-hidden />
@@ -298,12 +296,6 @@ const Characters = () => {
                 onReorder={handleReorder}
                 disabled={actionLoading || reorderingCharacters}
               />
-
-              <div className="characters-footer">
-                <button className="button-secondary" type="button" onClick={handleBack}>
-                  Voltar
-                </button>
-              </div>
             </div>
 
             <div className="characters-column">

@@ -7,6 +7,7 @@ import CreateWorld from './pages/CreateWorld.jsx';
 import Characters from './pages/Characters.jsx';
 import CharacterView from './pages/CharacterView.jsx';
 import NoteView from './pages/NoteView.jsx';
+import VisualGridEditor from './pages/VisualGridEditor.jsx';
 import TransitionOverlay from './components/TransitionOverlay.jsx';
 import faviconUrl from './imagens/fiveIcon.png';
 import fundoLoginImage from './imagens/fundoLogin.jpg';
@@ -16,6 +17,7 @@ const App = () => {
   const path = window.location.pathname;
   if (/^\/notes\/\d+/.test(path)) return <NoteView />;
   if (/^\/characters\/\d+/.test(path)) return <CharacterView />;
+  if (/^\/worlds\/\d+\/grid/.test(path)) return <VisualGridEditor />;
   if (/^\/worlds\/\d+\/characters/.test(path)) return <Characters />;
   if (path.includes('register')) return <Register />;
   if (path.includes('worlds/create')) return <CreateWorld />;

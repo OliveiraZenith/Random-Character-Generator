@@ -1,6 +1,6 @@
 import WorldCard from './WorldCard.jsx';
 
-const WorldList = ({ worlds, onOpen, onEdit, onDelete }) => {
+const WorldList = ({ worlds, onOpen, onEdit, onDelete, onOpenGrid }) => {
   if (!worlds.length) {
     return <div className="worlds-empty">Nenhum mundo ainda. Crie o primeiro!</div>;
   }
@@ -14,6 +14,7 @@ const WorldList = ({ worlds, onOpen, onEdit, onDelete }) => {
           onOpen={onOpen}
           onEdit={onEdit}
           onDelete={onDelete}
+          onOpenGrid={onOpenGrid}
         />
       ))}
     </div>

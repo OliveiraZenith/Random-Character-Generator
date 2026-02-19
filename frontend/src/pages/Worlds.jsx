@@ -51,6 +51,10 @@ const Worlds = () => {
     navigateWithTransition(`/worlds/${world.id}/characters`);
   };
 
+  const handleOpenGrid = (world) => {
+    navigateWithTransition(`/worlds/${world.id}/grid`);
+  };
+
   const handleBack = () => {
     navigateWithTransition('/');
   };
@@ -95,6 +99,7 @@ const Worlds = () => {
             onOpen={handleOpen}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onOpenGrid={handleOpenGrid}
           />
 
           <div className="worlds-actions">
