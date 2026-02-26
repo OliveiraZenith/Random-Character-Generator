@@ -18,6 +18,15 @@ Crie um arquivo `.env` baseado em `.env.example`:
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public"
 JWT_SECRET="uma-chave-segura"
 PORT=3000
+FRONTEND_BASE_URL="http://localhost:5173/register"
+PASSWORD_RESET_URL="http://localhost:5173/register"
+PASSWORD_RESET_EXPIRES_MINUTES=30
+SMTP_HOST="smtp.exemplo.com"
+SMTP_PORT=587
+SMTP_USER="usuario"
+SMTP_PASS="senha"
+SMTP_SECURE=false
+MAIL_FROM="Reino dos Contos <no-reply@meusite.com>"
 ```
 
 ## Migrações e Prisma
@@ -64,6 +73,9 @@ src/
 Autenticação:
 - `POST /auth/register` — { name, email, password }
 - `POST /auth/login` — { email, password }
+- `POST /auth/forgot-password` — { email }
+- `GET /auth/validate-token` — ?token=<token>
+- `POST /auth/reset-password` — { token, password }
 
 Mundos (token Bearer obrigatório):
 - `POST /worlds` — { name, theme, country? }
@@ -120,3 +132,4 @@ curl -X POST http://localhost:3000/worlds/1/characters \
 - As rotas protegidas requerem cabeçalho `Authorization: Bearer <token>`.
 - O banco deve conter registros em `random_data` para geração aleatória funcionar.
 - Use `npm audit fix` se quiser tratar avisos de vulnerabilidade das dependências transitivas.
+- Tokens de recuperação expiram conforme `PASSWORD_RESET_EXPIRES_MINUTES` (padrão 30 minutos) e são invalidados após o uso.

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { login } from '../services/api.js';
+import { login, requestPasswordReset } from '../services/api.js';
 import { navigateWithTransition } from '../services/navigation.js';
 
 const LoginForm = ({ onLoginSuccess }) => {
@@ -8,6 +8,11 @@ const LoginForm = ({ onLoginSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showReset, setShowReset] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetError, setResetError] = useState('');
+  const [resetSuccess, setResetSuccess] = useState('');
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -38,6 +43,40 @@ const LoginForm = ({ onLoginSuccess }) => {
       setError(err.message || 'Falha no login.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openResetModal = (event) => {
+    event.preventDefault();
+    setShowReset(true);
+    setResetEmail(email || '');
+    setResetError('');
+    setResetSuccess('');
+  };
+
+  const closeResetModal = () => {
+    setShowReset(false);
+    setResetLoading(false);
+  };
+
+  const handleResetSubmit = async (event) => {
+    event.preventDefault();
+    setResetError('');
+    setResetSuccess('');
+
+    if (!resetEmail.trim()) {
+      setResetError('Informe o email cadastrado.');
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      await requestPasswordReset(resetEmail.trim());
+      setResetSuccess('Link enviado para seu grimório. Confira a caixa de entrada e spam.');
+    } catch (err) {
+      setResetError(err.message || 'Não foi possível enviar o link.');
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -85,7 +124,41 @@ const LoginForm = ({ onLoginSuccess }) => {
         >
           Criar Conta
         </a>
+        <button className="link-tertiary" type="button" onClick={openResetModal}>
+          Esqueci minha senha
+        </button>
       </div>
+
+      {showReset && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-card">
+            <h3 className="modal-title">Recuperar senha</h3>
+            <p className="modal-text">Envie o email cadastrado para receber um link de redefinição.</p>
+            <form className="form" onSubmit={handleResetSubmit}>
+              <label className="label" htmlFor="reset-email">Email cadastrado</label>
+              <input
+                id="reset-email"
+                className="input"
+                type="email"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                placeholder="seu@email.com"
+                autoComplete="email"
+              />
+              {resetError && <div className="alert error" role="alert">{resetError}</div>}
+              {resetSuccess && <div className="alert success" role="status">{resetSuccess}</div>}
+              <div className="modal-actions">
+                <button className="button-primary" type="submit" disabled={resetLoading}>
+                  {resetLoading ? 'Enviando...' : 'Enviar link de recuperação'}
+                </button>
+                <button className="button-secondary" type="button" onClick={closeResetModal} disabled={resetLoading}>
+                  Fechar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
