@@ -16,6 +16,7 @@ import {
 } from '../services/api.js';
 import { navigateWithTransition } from '../services/navigation.js';
 import NotesPanel from '../components/NotesPanel.jsx';
+import { setPageMeta } from '../services/seo.js';
 
 const normalizeTagString = (raw) => {
   if (!raw) return [];
@@ -69,6 +70,12 @@ const Characters = () => {
       setError('Mundo não encontrado ou sessão expirada.');
       return;
     }
+
+    setPageMeta({
+      title: 'Personagens | Random Character Creator',
+      description: 'Veja, edite e organize os personagens deste mundo.',
+      url: window.location.href
+    });
 
     const fetchData = async () => {
       setLoading(true);

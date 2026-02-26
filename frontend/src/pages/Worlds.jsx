@@ -3,6 +3,7 @@ import HeaderUser from '../components/HeaderUser.jsx';
 import WorldList from '../components/WorldList.jsx';
 import { createWorld, deleteWorld, getWorlds, updateWorld } from '../services/api.js';
 import { navigateWithTransition } from '../services/navigation.js';
+import { setPageMeta } from '../services/seo.js';
 
 const Worlds = () => {
   const [worlds, setWorlds] = useState([]);
@@ -16,6 +17,13 @@ const Worlds = () => {
   useEffect(() => {
     const storedName = localStorage.getItem('rcc_user_name');
     if (storedName) setUserName(storedName);
+    setPageMeta({
+      title: 'Mundos | Random Character Creator',
+      description: storedName
+        ? `Explore e gerencie os mundos de ${storedName}.`
+        : 'Explore e gerencie seus mundos de RPG.',
+      url: window.location.href
+    });
   }, []);
 
   useEffect(() => {

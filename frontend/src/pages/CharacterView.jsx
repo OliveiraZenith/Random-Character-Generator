@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import CharacterDetails from '../components/CharacterDetails.jsx';
 import { getCharacterById, updateCharacter } from '../services/api.js';
+import { setPageMeta } from '../services/seo.js';
 
 const parseCharacterId = () => {
   const parts = window.location.pathname.split('/').filter(Boolean);
@@ -103,6 +104,14 @@ const CharacterView = () => {
         setForm(base);
         setOriginal(base);
         setWorldId(data.worldId || data.world?.id || null);
+
+        setPageMeta({
+          title: `Personagem: ${base.name || 'Detalhes'} | Random Character Creator`,
+          description: base.name
+            ? `Ficha completa de ${base.name} e suas histórias.`
+            : 'Ficha completa do personagem.',
+          url: window.location.href
+        });
       } catch (err) {
         setError(err.message || 'Erro ao carregar personagem.');
       } finally {
