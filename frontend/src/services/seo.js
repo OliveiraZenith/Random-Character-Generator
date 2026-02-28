@@ -5,7 +5,9 @@ const DEFAULTS = {
   description: 'Plataforma para criação de mundos, personagens e histórias de RPG.',
   keywords: 'RPG, criação de mundos, personagens, fantasia, medieval, storytelling',
   author: 'Ana Laura Lis',
-  image: 'https://random-character-creator-rpg.vercel.app/assets/preview.png'
+  image: 'https://random-character-creator-rpg.vercel.app/assets/preview.png',
+  imageWidth: '1200',
+  imageHeight: '630'
 };
 
 const ensureTag = (selector, create) => {
@@ -24,7 +26,9 @@ const setMeta = ({
   url,
   type = 'website',
   author,
-  robots
+  robots,
+  imageWidth,
+  imageHeight
 } = {}) => {
   const finalTitle = title || DEFAULTS.siteTitle;
   const finalDescription = description || DEFAULTS.description;
@@ -33,6 +37,8 @@ const setMeta = ({
   const finalImage = image || DEFAULTS.image;
   const finalUrl = url || DEFAULTS.baseUrl;
   const finalRobots = robots || 'index, follow';
+  const finalImageWidth = imageWidth || DEFAULTS.imageWidth;
+  const finalImageHeight = imageHeight || DEFAULTS.imageHeight;
 
   document.title = finalTitle;
 
@@ -84,6 +90,9 @@ const setMeta = ({
   setOg('title', finalTitle);
   setOg('description', finalDescription);
   setOg('image', finalImage);
+  setOg('image:secure_url', finalImage);
+  setOg('image:width', finalImageWidth);
+  setOg('image:height', finalImageHeight);
   setOg('url', finalUrl);
   setOg('site_name', DEFAULTS.siteName);
 
