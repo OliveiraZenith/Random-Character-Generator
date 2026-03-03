@@ -9,12 +9,12 @@ import CharacterView from './pages/CharacterView.jsx';
 import NoteView from './pages/NoteView.jsx';
 import VisualGridEditor from './pages/VisualGridEditor.jsx';
 import TransitionOverlay from './components/TransitionOverlay.jsx';
-import faviconUrl from './imagens/fiveIcon.png';
-import fundoLoginImage from './imagens/fundoLogin.jpg';
+import faviconUrl from './imagens/icons/fiveIcon.png';
+import fundoLoginImage from './imagens/icons/fundoLogin.jpg';
 import './styles/global.css';
 
 const App = () => {
-  const path = window.location.pathname;
+  const path = window.location.pathname; 
   if (/^\/notes\/\d+/.test(path)) return <NoteView />;
   if (/^\/characters\/\d+/.test(path)) return <CharacterView />;
   if (/^\/worlds\/\d+\/grid/.test(path)) return <VisualGridEditor />;
@@ -30,7 +30,7 @@ const ensureFavicon = () => {
   const link = existing || document.createElement('link');
   link.rel = 'icon';
   link.type = 'image/png';
-  link.href = faviconUrl;
+  link.href = faviconUrl; 
   if (!existing) {
     document.head.appendChild(link);
   }

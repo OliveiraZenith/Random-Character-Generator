@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import fundoLoginImage from '../imagens/fundoLogin.jpg';
+import fundoLoginImage from '../imagens/icons/fundoLogin.jpg';
 import arrowIcon from '../imagens/icons/arrow_5613178.png';
 import maceIcon from '../imagens/icons/mace_3893138.png';
 import swordIcon from '../imagens/icons/sword_1030368.png';
