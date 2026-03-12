@@ -984,7 +984,9 @@ body.visual-editor-mode {
   border-radius: 16px;
   box-shadow: 0 28px 70px rgba(0, 0, 0, 0.65), 0 0 28px rgba(240, 180, 107, 0.32);
   padding: 22px 22px 18px;
-  overflow: hidden;
+  overflow-y: auto;
+  max-height: 88vh;
+  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1205,7 +1207,7 @@ body.visual-editor-mode {
 .dice-examples-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 10px;
+  gap: 16px;
 }
 
 .dice-example-card {
@@ -1235,6 +1237,7 @@ body.visual-editor-mode {
 
 @media (max-width: 600px) {
   .dice-modal { padding: 18px 16px 14px; }
+  .dice-modal::before { display: none; }
   .dice-input-row { grid-template-columns: 1fr 48px; }
   .nav-toggle { top: 12px; left: 12px; }
   .dice-toggle { top: 64px; left: 12px; }
