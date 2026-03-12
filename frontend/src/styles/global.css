@@ -609,6 +609,8 @@ body.visual-editor-mode {
   border-radius: 0;
   overflow: auto;
   box-shadow: none;
+  touch-action: none;
+  overscroll-behavior: contain;
 }
 
 .visual-canvas-wrapper.is-zoomed {
@@ -642,6 +644,7 @@ body.visual-editor-mode {
   background-position: center;
   border-radius: 0;
   overflow: hidden;
+  touch-action: none;
 }
 
 .visual-canvas.show-grid::after {
@@ -659,6 +662,7 @@ body.visual-editor-mode {
 .draggable {
   position: absolute;
   user-select: none;
+  touch-action: none;
   transform-origin: center center;
   border: 1px solid transparent;
   transition: box-shadow 0.2s ease, border 0.2s ease;
@@ -1263,6 +1267,29 @@ body.visual-editor-mode {
   gap: 10px;
 }
 
+.mobile-only { display: none; }
+
+@media (max-width: 780px) {
+  body.hide-fabs-mobile .nav-toggle,
+  body.hide-fabs-mobile .dice-toggle {
+    display: none !important;
+  }
+}
+
+.footer-toggle-main {
+  display: none;
+  border-radius: 12px;
+  border: 1px solid rgba(240, 180, 107, 0.45);
+  background: linear-gradient(145deg, rgba(24, 16, 16, 0.94), rgba(12, 10, 14, 0.94));
+  color: #f3d5a1;
+  font-weight: 800;
+  padding: 10px 14px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  min-width: 190px;
+  text-align: center;
+}
+
 .footer-toggles {
   display: flex;
   align-items: center;
@@ -1285,6 +1312,84 @@ body.visual-editor-mode {
   min-width: 48px;
   text-align: center;
   font-weight: 700;
+}
+
+@media (max-width: 780px) {
+  .visual-editor-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .desktop-only {
+    display: none !important;
+  }
+
+  .visual-editor-footer .footer-left,
+  .visual-editor-footer .footer-actions {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .mobile-only { display: inline-flex; }
+
+  .footer-toggle-main {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    text-align: center;
+  }
+
+  .visual-editor-footer .button-primary,
+  .visual-editor-footer .ghost-button {
+    flex: 1 1 calc(50% - 6px);
+    min-width: 140px;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .visual-editor-footer .footer-center {
+    order: 3;
+    width: 100%;
+    text-align: center;
+  }
+
+  .footer-toggles {
+    width: 100%;
+    justify-content: center;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .zoom-controls {
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .zoom-controls .ghost-button {
+    flex: 0 0 auto;
+    min-width: 64px;
+    padding: 8px 10px;
+  }
+
+  .zoom-controls .zoom-value {
+    flex: 0 0 auto;
+    min-width: 68px;
+  }
+
+  .visual-editor-footer.is-collapsed {
+    justify-content: center;
+  }
+
+  .visual-editor-footer.is-collapsed .footer-left,
+  .visual-editor-footer.is-collapsed .footer-actions {
+    display: none;
+  }
 }
 
 .background-drop {

@@ -28,6 +28,8 @@ const VisualGridEditor = () => {
   const pointerRef = useRef(null);
   const objectUrlsRef = useRef([]);
   const clipboardRef = useRef([]);
+  const bgInputRef = useRef(null);
+  const iconFileInputRef = useRef(null);
   const zCounter = useRef(1);
   const itemsRef = useRef([]);
   const selectedRef = useRef([]);
@@ -50,6 +52,7 @@ const VisualGridEditor = () => {
   const [isDropping, setIsDropping] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [isPanning, setIsPanning] = useState(false);
+  const [footerOpen, setFooterOpen] = useState(true);
 
   const newId = () => crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
@@ -122,6 +125,16 @@ const VisualGridEditor = () => {
       document.body.classList.remove('visual-editor-mode');
     };
   }, []);
+
+  useEffect(() => {
+    const shouldHide = (bgModalOpen || iconModalOpen) && window.innerWidth <= 780;
+    if (shouldHide) {
+      document.body.classList.add('hide-fabs-mobile');
+    } else {
+      document.body.classList.remove('hide-fabs-mobile');
+    }
+    return () => document.body.classList.remove('hide-fabs-mobile');
+  }, [bgModalOpen, iconModalOpen]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -217,6 +230,55 @@ const VisualGridEditor = () => {
     event.stopPropagation();
     setIsDropping(false);
   };
+
+  // Pinch-to-zoom on touch devices
+  useEffect(() => {
+    const el = workspaceRef.current;
+    if (!el) return undefined;
+
+    let pinchStartDistance = null;
+    let pinchStartZoom = zoom;
+
+    const distance = (touches) => {
+      const [a, b] = touches;
+      const dx = a.clientX - b.clientX;
+      const dy = a.clientY - b.clientY;
+      return Math.hypot(dx, dy);
+    };
+
+    const onTouchStart = (e) => {
+      if (e.touches.length === 2) {
+        pinchStartDistance = distance(e.touches);
+        pinchStartZoom = zoom;
+      }
+    };
+
+    const onTouchMove = (e) => {
+      if (e.touches.length === 2 && pinchStartDistance) {
+        e.preventDefault();
+        const current = distance(e.touches);
+        const scale = current / pinchStartDistance;
+        const next = clamp(parseFloat((pinchStartZoom * scale).toFixed(2)), 0.5, 2);
+        setZoom(next);
+      }
+    };
+
+    const onTouchEnd = () => {
+      pinchStartDistance = null;
+    };
+
+    el.addEventListener('touchstart', onTouchStart, { passive: false });
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    el.addEventListener('touchend', onTouchEnd);
+    el.addEventListener('touchcancel', onTouchEnd);
+
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+      el.removeEventListener('touchend', onTouchEnd);
+      el.removeEventListener('touchcancel', onTouchEnd);
+    };
+  }, [zoom]);
 
   const handleFileInput = (event) => {
     addImages(event.target.files);
@@ -712,7 +774,16 @@ const VisualGridEditor = () => {
         </div>
       </div>
 
-      <div className="visual-editor-footer">
+      <div className={`visual-editor-footer ${footerOpen ? '' : 'is-collapsed'}`}>
+        <button
+          type="button"
+          className="footer-toggle-main"
+          onClick={() => setFooterOpen((v) => !v)}
+          aria-label={footerOpen ? 'Ocultar controles' : 'Mostrar controles'}
+        >
+          {footerOpen ? 'Ocultar controles' : 'Mostrar controles'}
+        </button>
+
         <div className="footer-left">
           <button className="button-primary" type="button" onClick={() => setBgModalOpen(true)}>
             Adicionar imagem de fundo
@@ -721,11 +792,30 @@ const VisualGridEditor = () => {
             Remover fundo
           </button>
         </div>
-        <div className="footer-center">Nada é salvo. Recarregue para limpar.</div>
+
+        <div className="footer-center desktop-only">Nada é salvo. Recarregue para limpar.</div>
+
         <div className="footer-actions">
           <button className="ghost-button" type="button" onClick={() => setIconModalOpen(true)}>
             Adicionar ícone
           </button>
+          <button
+            type="button"
+            className="ghost-button mobile-only"
+            onClick={() => iconFileInputRef.current?.click()}
+          >
+            Usar imagem como ícone
+          </button>
+          <input
+            ref={iconFileInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            hidden
+            onChange={(e) => {
+              addImages(e.target.files);
+              e.target.value = '';
+            }}
+          />
           <div className="footer-toggles">
             <button className="ghost-button" type="button" onClick={() => setGridVisible((v) => !v)}>
               {gridVisible ? 'Ocultar grid' : 'Mostrar grid'}
@@ -760,11 +850,18 @@ const VisualGridEditor = () => {
               onDragOver={(e) => e.preventDefault()}
             >
               <p className="muted">Arraste uma imagem ou clique abaixo</p>
-              <label className="button-primary" htmlFor="bg-upload">Selecionar arquivo</label>
+              <button
+                type="button"
+                className="button-primary"
+                onClick={() => bgInputRef.current?.click()}
+              >
+                Selecionar arquivo
+              </button>
               <input
                 id="bg-upload"
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
+                ref={bgInputRef}
                 onChange={(e) => handleBackgroundFiles(e.target.files)}
                 hidden
               />
