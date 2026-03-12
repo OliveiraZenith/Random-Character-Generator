@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&display=swap');
+
 :root {
   --bg-dark: #0d0a14;
   --bg-panel: #1c0f14;
@@ -10,7 +12,7 @@
   --glow: rgba(192, 98, 29, 0.45);
   --card-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
   --border: rgba(240, 180, 107, 0.35);
-  --font-title: 'Uncial Antiqua', 'IM Fell English', serif;
+  --font-title: 'Cinzel', 'IM Fell English', serif;
   --font-body: 'Cardo', 'Times New Roman', serif;
   --bg-login-image: none;
 }
@@ -504,7 +506,7 @@ body.visual-editor-mode {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 320px;
+  max-height: 300px;
   overflow: auto;
   padding-right: 4px;
 }
@@ -910,6 +912,316 @@ body.visual-editor-mode {
   text-decoration-thickness: 2px;
   text-underline-offset: 4px;
   text-shadow: 0 0 14px rgba(255, 210, 122, 0.35);
+}
+
+/* Dice roller */
+.dice-toggle {
+  position: fixed;
+  top: 70px;
+  left: 18px;
+  z-index: 12001;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(240, 180, 107, 0.45);
+  background: linear-gradient(145deg, rgba(24, 16, 16, 0.92), rgba(12, 10, 14, 0.9));
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  padding: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow 0.2s ease, transform 0.15s ease, border 0.2s ease;
+}
+
+.dice-toggle img {
+  width: 22px;
+  height: 22px;
+  filter: drop-shadow(0 0 6px rgba(247, 224, 185, 0.35));
+}
+
+.dice-toggle:hover,
+.dice-toggle:focus-visible {
+  outline: none;
+  border-color: var(--accent-2);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45), 0 0 16px rgba(240, 180, 107, 0.35);
+  transform: translateY(-1px);
+}
+
+.dice-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 4, 12, 0.86);
+  backdrop-filter: blur(6px);
+  z-index: 13000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.dice-modal {
+  position: relative;
+  width: min(920px, 100%);
+  background: linear-gradient(175deg, rgba(26, 16, 14, 0.95), rgba(12, 8, 12, 0.96));
+  border: 1px solid rgba(240, 180, 107, 0.5);
+  border-radius: 16px;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.65), 0 0 28px rgba(240, 180, 107, 0.32);
+  padding: 22px 22px 18px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: diceEnter 0.2s ease;
+  overscroll-behavior: contain;
+}
+
+.dice-modal::before {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  border: 1px solid rgba(240, 180, 107, 0.25);
+  border-radius: 12px;
+  pointer-events: none;
+  filter: drop-shadow(0 0 10px var(--glow));
+}
+
+@keyframes diceEnter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dice-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid rgba(240, 180, 107, 0.35);
+  background: rgba(0, 0, 0, 0.2);
+  color: #f3d5a1;
+  cursor: pointer;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dice-close:hover,
+.dice-close:focus-visible {
+  outline: none;
+  border-color: var(--accent-2);
+  box-shadow: 0 0 12px rgba(240, 180, 107, 0.35);
+}
+
+.dice-title {
+  margin: 8px 0 14px;
+  text-align: center;
+  font-family: var(--font-title);
+  color: #f3d5a1;
+}
+
+.dice-input-row {
+  display: grid;
+  grid-template-columns: 1fr 54px;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.dice-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(240, 180, 107, 0.4);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font-size: 15px;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dice-input::placeholder { color: var(--muted); }
+
+.dice-input:focus {
+  outline: none;
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 3px rgba(240, 180, 107, 0.2);
+}
+
+.dice-action {
+  border: 1px solid rgba(240, 180, 107, 0.5);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(24, 16, 16, 0.95), rgba(12, 10, 14, 0.95));
+  color: #f0d7a5;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+  transition: border 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.dice-action img {
+  width: 20px;
+  height: 20px;
+  filter: drop-shadow(0 0 6px rgba(119, 89, 58, 0.35));
+}
+
+.dice-action:hover,
+.dice-action:focus-visible {
+  outline: none;
+  border-color: var(--accent-2);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5), 0 0 16px rgba(240, 180, 107, 0.35);
+  transform: translateY(-1px);
+}
+
+.dice-error {
+  background: rgba(255, 95, 95, 0.12);
+  border: 1px solid rgba(255, 95, 95, 0.35);
+  color: #ffc8c8;
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.dice-result {
+  background: linear-gradient(140deg, rgba(26, 16, 16, 0.92), rgba(14, 10, 14, 0.96));
+  border: 1px solid rgba(240, 180, 107, 0.4);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45), 0 0 16px rgba(240, 180, 107, 0.25);
+  max-height: 300px;
+  min-height: 140px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.dice-result-header {
+  font-family: var(--font-title);
+  color: #f3d5a1;
+  margin-bottom: 8px;
+}
+
+.dice-breakdown-list {
+  display: grid;
+  gap: 8px;
+}
+
+.dice-group-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dice-group-rolls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.dice-roll-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(240, 180, 107, 0.25);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+.dice-roll-formula {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.dice-roll-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fdf7ed;
+  text-shadow: 0 0 12px rgba(240, 180, 107, 0.4);
+}
+
+.dice-group-total {
+  color: #f3d5a1;
+  font-weight: 700;
+  margin-left: 2px;
+}
+
+.dice-placeholder {
+  color: var(--muted);
+  padding: 6px 0;
+}
+
+.dice-total {
+  margin-top: 10px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffd9a3;
+  text-shadow: 0 0 14px rgba(240, 180, 107, 0.45);
+}
+
+.dice-result::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dice-result::-webkit-scrollbar-thumb {
+  background: rgba(240, 180, 107, 0.35);
+  border-radius: 999px;
+}
+
+.dice-result::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.dice-examples {
+  margin-top: 14px;
+  border-top: 1px solid rgba(240, 180, 107, 0.25);
+  padding-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.dice-examples-title {
+  font-family: var(--font-title);
+  color: #f3d5a1;
+}
+
+.dice-examples-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.dice-example-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(240, 180, 107, 0.25);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+}
+
+.dice-example-title {
+  font-weight: 800;
+  color: #fdf7ed;
+  margin-bottom: 6px;
+}
+
+.dice-example-input {
+  color: #f0d7a5;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.dice-example-text {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .dice-modal { padding: 18px 16px 14px; }
+  .dice-input-row { grid-template-columns: 1fr 48px; }
+  .dice-toggle { top: 66px; left: 12px; }
+  .dice-result { max-height: 55vh; }
 }
 
 .visual-editor-footer .footer-left {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import DiceRoller from './DiceRoller.jsx';
 import { navigateWithTransition } from '../services/navigation.js';
 
 const SidebarNav = ({ worldId }) => {
@@ -46,6 +47,7 @@ const SidebarNav = ({ worldId }) => {
 
   return (
     <>
+      <DiceRoller />
       {!open && (
         <button
           type="button"
