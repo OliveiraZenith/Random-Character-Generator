@@ -15,7 +15,17 @@ const CountrySelect = ({ value, onChange, visible }) => {
           onChange={(e) => onChange(e.target.value)}
           list="country-list"
         />
-        <span className="icon-search" aria-hidden>🔍</span>
+        <svg
+          className="icon-search"
+          aria-hidden
+          focusable="false"
+          viewBox="0 0 24 24"
+          width="18"
+          height="18"
+        >
+          <circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" strokeWidth="2" />
+          <line x1="15.5" y1="15.5" x2="20" y2="20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
         <datalist id="country-list">
           {COUNTRIES.map((c) => (
             <option key={c} value={c} />

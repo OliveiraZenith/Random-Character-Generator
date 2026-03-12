@@ -359,6 +359,22 @@ body {
   padding-right: 4px;
 }
 
+.create-card .create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: none;
+  overflow: visible;
+  align-items: stretch;
+  width: 100%;
+}
+
+.create-card .worlds-actions {
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+}
+
 .create-form > .alert,
 .create-form > .button-primary {
   grid-column: 1 / -1;
@@ -1220,7 +1236,8 @@ body.visual-editor-mode {
 @media (max-width: 600px) {
   .dice-modal { padding: 18px 16px 14px; }
   .dice-input-row { grid-template-columns: 1fr 48px; }
-  .dice-toggle { top: 66px; left: 12px; }
+  .nav-toggle { top: 12px; left: 12px; }
+  .dice-toggle { top: 64px; left: 12px; }
   .dice-result { max-height: 55vh; }
 }
 
@@ -1413,10 +1430,11 @@ body.visual-editor-mode {
   top: 50%;
   transform: translateY(-50%);
   color: var(--muted);
+  pointer-events: none;
 }
 
 .country-scroll {
-  max-height: 150px;
+  max-height: 96px;
   overflow-y: auto;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
@@ -1441,6 +1459,10 @@ body.visual-editor-mode {
   cursor: pointer;
   margin-bottom: 6px;
   transition: border 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.country-item:last-child {
+  margin-bottom: 0;
 }
 
 .country-item:hover {

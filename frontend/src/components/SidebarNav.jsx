@@ -47,7 +47,7 @@ const SidebarNav = ({ worldId }) => {
 
   return (
     <>
-      <DiceRoller />
+      <DiceRoller visible={!open} />
       {!open && (
         <button
           type="button"

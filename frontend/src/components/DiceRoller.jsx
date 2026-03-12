@@ -72,7 +72,9 @@ const rollExpression = (value) => {
   return { groups, total };
 };
 
-const DiceRoller = () => {
+const DiceRoller = ({ visible = true }) => {
+  if (!visible) return null;
+
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
   const [error, setError] = useState('');
