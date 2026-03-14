@@ -21,7 +21,7 @@ import { setPageMeta } from '../services/seo.js';
 const normalizeTagString = (raw) => {
   if (!raw) return [];
   return raw
-    .split(',')
+    .split(';')
     .map((t) => t.trim().toLowerCase())
     .filter(Boolean);
 };
@@ -65,7 +65,7 @@ const Characters = () => {
   const [reorderingCharacters, setReorderingCharacters] = useState(false);
   const [reorderingNotes, setReorderingNotes] = useState(false);
   const [searchTags, setSearchTags] = useState('');
-  const [searchScope, setSearchScope] = useState({ characters: true, notes: true });
+  const [searchScope, setSearchScope] = useState({ characters: true, notes: false });
 
   const token = useMemo(() => localStorage.getItem('rcc_token'), []);
   const worldId = useMemo(() => parseWorldId(), []);
@@ -130,13 +130,8 @@ const Characters = () => {
       if (!payload || (payload.worldId && payload.worldId !== worldId)) return;
 
       if (type === 'noteUpdated') {
-        setNotes((prev) => {
-          const exists = prev.some((n) => n.id === payload.id);
-          if (exists) {
-            return prev.map((n) => (n.id === payload.id ? { ...n, ...payload } : n));
-          }
-          return [payload, ...prev];
-        });
+        // Refresh from server to keep order/tags consistent across tabs
+        fetchNotes();
       }
 
       if (type === 'characterUpdated') {
@@ -319,7 +314,7 @@ const Characters = () => {
                     id="tag-search"
                     className="input input-glow"
                     type="text"
-                    placeholder="mago, vilão, npc"
+                    placeholder="mago; vilão; npc"
                     value={searchTags}
                     onChange={(e) => setSearchTags(e.target.value)}
                   />

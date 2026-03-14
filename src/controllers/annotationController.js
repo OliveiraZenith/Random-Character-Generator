@@ -22,10 +22,13 @@ const upsertTags = async (names) => {
   return prisma.tag.findMany({ where: { name: { in: names } } });
 };
 
-const replaceAnnotationTags = async (annotationId, tagIds) => {
+const replaceAnnotationTags = async (annotationId, tags) => {
   await prisma.annotationTag.deleteMany({ where: { annotationId } });
-  if (!tagIds.length) return;
-  await prisma.annotationTag.createMany({ data: tagIds.map((tagId) => ({ annotationId, tagId })), skipDuplicates: true });
+  if (!tags.length) return;
+  await prisma.annotationTag.createMany({
+    data: tags.map((tag, idx) => ({ annotationId, tagId: tag.id, position: idx })),
+    skipDuplicates: true
+  });
 };
 
 const serializeAnnotation = (annotation) => {
@@ -52,7 +55,7 @@ export const listAnnotationsByWorld = async (req, res) => {
 
     const notes = await prisma.annotation.findMany({
       where: { worldId: world.id },
-      include: { annotationTags: { include: { tag: true } } },
+      include: { annotationTags: { include: { tag: true }, orderBy: { position: 'asc' } } },
       orderBy: [
         { order: 'desc' },
         { updatedAt: 'desc' }
@@ -89,13 +92,13 @@ export const createAnnotation = async (req, res) => {
         annotationTags: tags.length
           ? {
               createMany: {
-                data: tags.map((tag) => ({ tagId: tag.id })),
+                data: tags.map((tag, idx) => ({ tagId: tag.id, position: idx })),
                 skipDuplicates: true
               }
             }
           : undefined
       },
-      include: { annotationTags: { include: { tag: true } } }
+      include: { annotationTags: { include: { tag: true }, orderBy: { position: 'asc' } } }
     });
 
     return res.status(201).json(serializeAnnotation(note));
@@ -127,14 +130,14 @@ export const updateAnnotation = async (req, res) => {
         title: title !== undefined ? (title.trim() || 'Sem título') : existing.title,
         content: content !== undefined ? content : existing.content
       },
-      include: { annotationTags: { include: { tag: true } } }
+      include: { annotationTags: { include: { tag: true }, orderBy: { position: 'asc' } } }
     });
 
     if (tags) {
-      await replaceAnnotationTags(updated.id, tags.map((t) => t.id));
+      await replaceAnnotationTags(updated.id, tags);
       const withTags = await prisma.annotation.findUnique({
         where: { id: updated.id },
-        include: { annotationTags: { include: { tag: true } } }
+        include: { annotationTags: { include: { tag: true }, orderBy: { position: 'asc' } } }
       });
       return res.status(200).json(serializeAnnotation(withTags));
     }
@@ -150,7 +153,7 @@ export const getAnnotation = async (req, res) => {
     const id = Number(req.params.id);
     const note = await prisma.annotation.findUnique({
       where: { id },
-      include: { world: true, annotationTags: { include: { tag: true } } }
+      include: { world: true, annotationTags: { include: { tag: true }, orderBy: { position: 'asc' } } }
     });
 
     if (!note || note.world.userId !== req.userId) {
@@ -220,7 +223,7 @@ export const reorderAnnotations = async (req, res) => {
 
     const reordered = await prisma.annotation.findMany({
       where: { worldId: world.id },
-      include: { annotationTags: { include: { tag: true } } },
+      include: { annotationTags: { include: { tag: true }, orderBy: { position: 'asc' } } },
       orderBy: [
         { order: 'desc' },
         { updatedAt: 'desc' }

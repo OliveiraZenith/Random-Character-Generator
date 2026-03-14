@@ -15,40 +15,55 @@ const CharacterCard = ({ character, onEdit, onDelete, disabled, dragProps }) => 
     'character-card glow-hover fade-in',
     draggable ? 'is-draggable' : '',
     dragging ? 'is-dragging' : '',
-    dragOver ? 'is-drag-over' : ''
+    dragOver ? 'is-drag-over' : '',
+    open ? 'is-open' : ''
   ].filter(Boolean).join(' ');
 
   return (
     <div
       className={cardClass}
       role="article"
-      draggable={draggable}
-      aria-grabbed={dragging || undefined}
-      onDragStart={dragProps?.onDragStart}
+      data-character-id={character.id}
       onDragOver={dragProps?.onDragOver}
       onDragLeave={dragProps?.onDragLeave}
       onDrop={dragProps?.onDrop}
-      onDragEnd={dragProps?.onDragEnd}
+      onTouchMove={dragProps?.onTouchMove}
+      onTouchEnd={dragProps?.onTouchEnd}
     >
-      <button
-        type="button"
-        className="character-summary"
-        onClick={() => setOpen((prev) => !prev)}
-        disabled={disabled}
-        aria-expanded={open}
-      >
-        <div className="character-summary-head">
-          <span className="character-name">{character.name}</span>
-          {Array.isArray(character.tags) && character.tags.length > 0 && (
-            <div className="chip-row chip-row-tight" aria-label="Tags do personagem">
-              {character.tags.map((tag) => (
-                <span key={tag} className="chip chip-small">{tag}</span>
-              ))}
-            </div>
-          )}
-        </div>
-        <span className="character-arrow" aria-hidden>{open ? '▲' : '▼'}</span>
-      </button>
+      <div className="character-card-bar">
+        <button
+          type="button"
+          className="character-summary"
+          onClick={() => setOpen((prev) => !prev)}
+          disabled={disabled}
+          aria-expanded={open}
+        >
+          <div className="character-summary-head">
+            <span className="character-name">{character.name}</span>
+            {Array.isArray(character.tags) && character.tags.length > 0 && (
+              <div className="chip-row chip-row-tight" aria-label="Tags do personagem">
+                {character.tags.map((tag) => (
+                  <span key={tag} className="chip chip-small">{tag}</span>
+                ))}
+              </div>
+            )}
+          </div>
+          <span className="character-arrow" aria-hidden>{open ? '▲' : '▼'}</span>
+        </button>
+        <button
+          type="button"
+          className="drag-handle"
+          draggable={draggable}
+          aria-label="Reordenar"
+          disabled={disabled}
+          onMouseDown={(e) => e.stopPropagation()}
+          onDragStart={dragProps?.onDragStart}
+          onDragEnd={dragProps?.onDragEnd}
+          onTouchStart={dragProps?.onTouchStart}
+        >
+          {' '}
+        </button>
+      </div>
 
       {open && (
         <div className="character-body">

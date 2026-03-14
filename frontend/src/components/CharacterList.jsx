@@ -57,6 +57,47 @@ const CharacterList = ({ characters, onEdit, onDelete, onReorder, disabled }) =>
     }
   };
 
+  const handleTouchStart = (event, characterId) => {
+    if (disabled) return;
+    setDraggingId(characterId);
+  };
+
+  const handleTouchMove = (event) => {
+    if (disabled || draggingId == null) return;
+    const touch = event.touches && event.touches[0];
+    if (!touch) return;
+    const pointX = touch.clientX;
+    const pointY = touch.clientY;
+    const element = document.elementFromPoint(pointX, pointY);
+    const cardEl = element && element.closest && element.closest('[data-character-id]');
+    if (!cardEl) return;
+    const targetId = Number(cardEl.getAttribute('data-character-id'));
+    if (!targetId || targetId === dragOverId) return;
+    setDragOverId(targetId);
+  };
+
+  const handleTouchEnd = () => {
+    if (disabled || draggingId == null || dragOverId == null || draggingId === dragOverId) {
+      resetDrag();
+      return;
+    }
+
+    const sourceId = draggingId;
+    const targetId = dragOverId;
+    const currentIndex = characters.findIndex((c) => c.id === sourceId);
+    const targetIndex = characters.findIndex((c) => c.id === targetId);
+    if (currentIndex === -1 || targetIndex === -1) {
+      resetDrag();
+      return;
+    }
+
+    const updated = [...characters];
+    const [moved] = updated.splice(currentIndex, 1);
+    updated.splice(targetIndex, 0, moved);
+    onReorder?.(updated);
+    resetDrag();
+  };
+
   if (!characters.length) {
     return <div className="characters-empty">Nenhum personagem criado neste mundo.</div>;
   }
@@ -78,7 +119,10 @@ const CharacterList = ({ characters, onEdit, onDelete, onReorder, disabled }) =>
             onDragOver: (event) => handleDragOver(event, character.id),
             onDragLeave: () => handleDragLeave(character.id),
             onDrop: (event) => handleDrop(event, character.id),
-            onDragEnd: handleDragEnd
+            onDragEnd: handleDragEnd,
+            onTouchStart: (event) => handleTouchStart(event, character.id),
+            onTouchMove: handleTouchMove,
+            onTouchEnd: handleTouchEnd
           }}
         />
       ))}

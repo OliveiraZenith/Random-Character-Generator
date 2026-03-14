@@ -10,16 +10,25 @@ const parseNoteId = () => {
   return null;
 };
 
+const normalizeTagsInput = (raw) => {
+  if (!raw) return [];
+  return Array.from(new Set(String(raw)
+    .split(';')
+    .map((tag) => tag.trim().toLowerCase())
+    .filter(Boolean)));
+};
+
 const normalizePayload = (form) => ({
   title: form.title?.trim() || 'Sem título',
-  content: form.content ?? ''
+  content: form.content ?? '',
+  tags: normalizeTagsInput(form.tagsString)
 });
 
 const NoteView = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ title: '', content: '' });
-  const [original, setOriginal] = useState({ title: '', content: '' });
+  const [form, setForm] = useState({ title: '', content: '', tagsString: '' });
+  const [original, setOriginal] = useState({ title: '', content: '', tagsString: '' });
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [worldId, setWorldId] = useState(null);
@@ -62,7 +71,8 @@ const NoteView = () => {
         const data = await getNoteById(token, noteId);
         const base = {
           title: data.title || '',
-          content: data.content || ''
+          content: data.content || '',
+          tagsString: (data.tags || []).join('; ')
         };
         setForm(base);
         setOriginal(base);
@@ -95,7 +105,7 @@ const NoteView = () => {
   };
 
   const handleSave = async () => {
-    if (!isDirty()) return;
+    if (saving || !isDirty()) return;
     setSaving(true);
     setError('');
     setMessage('');
@@ -104,11 +114,12 @@ const NoteView = () => {
       const updated = await updateNote(token, noteId, payload);
       const base = {
         title: updated.title || payload.title,
-        content: updated.content || payload.content
+        content: updated.content || payload.content,
+        tagsString: (updated.tags || payload.tags || []).join('; ')
       };
       setForm(base);
       setOriginal(base);
-      postSyncMessage({ type: 'noteUpdated', payload: { ...base, id: noteId, worldId } });
+      postSyncMessage({ type: 'noteUpdated', payload: { ...base, id: noteId, worldId, tags: normalizeTagsInput(base.tagsString) } });
       setMessage('Anotação salva com sucesso!');
       setTimeout(() => setMessage(''), 2500);
     } catch (err) {
@@ -156,6 +167,7 @@ const NoteView = () => {
               placeholder="Nova anotação"
               value={form.title}
               onChange={(val) => handleFieldChange('title', val)}
+              onBlur={handleSave}
             />
 
             <EditableField
@@ -166,6 +178,16 @@ const NoteView = () => {
               placeholder="Escreva suas anotações..."
               value={form.content}
               onChange={(val) => handleFieldChange('content', val)}
+              onBlur={handleSave}
+            />
+
+            <EditableField
+              label="Tags"
+              name="tags"
+              placeholder="mago; vilão; npc"
+              value={form.tagsString}
+              onChange={(val) => handleFieldChange('tagsString', val)}
+              onBlur={handleSave}
             />
           </div>
 

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 const normalizeTagsInput = (raw) => {
   if (!raw) return [];
   return Array.from(new Set(String(raw)
-    .split(',')
+    .split(';')
     .map((tag) => tag.trim().toLowerCase())
     .filter(Boolean)));
 };
@@ -34,7 +34,7 @@ const NotesPanel = ({
           // Treat placeholder title as empty so the placeholder shows and the user types directly
           title: note.title === 'Nova anotação' ? '' : note.title,
           content: note.content,
-          tagsString: (note.tags || []).join(', ')
+          tagsString: (note.tags || []).join('; ')
         }
       ])
     );
@@ -129,9 +129,51 @@ const NotesPanel = ({
     }
   };
 
-  const getDraft = (note) => drafts[note.id] || { title: note.title, content: note.content, tagsString: (note.tags || []).join(', ') };
+  const handleTouchStart = (event, noteId) => {
+    if (interactionsLocked) return;
+    setDraggingId(noteId);
+  };
+
+  const handleTouchMove = (event) => {
+    if (interactionsLocked || draggingId == null) return;
+    const touch = event.touches && event.touches[0];
+    if (!touch) return;
+    const pointX = touch.clientX;
+    const pointY = touch.clientY;
+    const element = document.elementFromPoint(pointX, pointY);
+    const cardEl = element && element.closest && element.closest('[data-note-id]');
+    if (!cardEl) return;
+    const targetId = Number(cardEl.getAttribute('data-note-id'));
+    if (!targetId || targetId === dragOverId) return;
+    setDragOverId(targetId);
+  };
+
+  const handleTouchEnd = () => {
+    if (interactionsLocked || draggingId == null || dragOverId == null || draggingId === dragOverId) {
+      resetDrag();
+      return;
+    }
+
+    const sourceId = draggingId;
+    const targetId = dragOverId;
+    const currentIndex = notes.findIndex((n) => n.id === sourceId);
+    const targetIndex = notes.findIndex((n) => n.id === targetId);
+    if (currentIndex === -1 || targetIndex === -1) {
+      resetDrag();
+      return;
+    }
+
+    const updated = [...notes];
+    const [moved] = updated.splice(currentIndex, 1);
+    updated.splice(targetIndex, 0, moved);
+    onReorder?.(updated);
+    resetDrag();
+  };
+
+  const getDraft = (note) => drafts[note.id] || { title: note.title, content: note.content, tagsString: (note.tags || []).join('; ') };
 
   const handleSave = async (note) => {
+    if (savingAll || savingId === note.id) return;
     const draft = getDraft(note);
     const tags = normalizeTagsInput(draft.tagsString);
     const payload = { title: draft.title, content: draft.content, tags };
@@ -194,6 +236,9 @@ const NotesPanel = ({
       <div className="notes-list">
         {notes.map((note) => {
           const draft = getDraft(note);
+          const displayTags = draft.tagsString
+            ? normalizeTagsInput(draft.tagsString)
+            : (note.tags || []).map((t) => String(t).toLowerCase());
           const isSaving = savingId === note.id;
           const isOpen = openNotes[note.id] ?? true;
           const isDragging = draggingId === note.id;
@@ -203,58 +248,82 @@ const NotesPanel = ({
             'note-card',
             draggable ? 'is-draggable' : '',
             isDragging ? 'is-dragging' : '',
-            isDragOver ? 'is-drag-over' : ''
+            isDragOver ? 'is-drag-over' : '',
+            isOpen ? 'is-open' : ''
           ].filter(Boolean).join(' ');
 
           return (
             <div
               className={cardClass}
               key={note.id}
-              draggable={draggable}
-              aria-grabbed={isDragging || undefined}
-              onDragStart={(event) => handleDragStart(event, note.id)}
+              data-note-id={note.id}
               onDragOver={(event) => handleDragOver(event, note.id)}
               onDragLeave={() => handleDragLeave(note.id)}
               onDrop={(event) => handleDrop(event, note.id)}
-              onDragEnd={handleDragEnd}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
             >
-              <div className="note-summary-row">
+              <div className="note-card-bar">
+                <div className="note-summary-row">
+                  <input
+                    className="input note-title-inline"
+                    value={draft.title}
+                    onChange={(e) => handleChange(note.id, 'title', e.target.value)}
+                    onBlur={() => handleSave(note)}
+                    placeholder="Nova anotação"
+                    disabled={savingAll}
+                  />
+                  <button
+                    type="button"
+                    className="note-toggle"
+                    onClick={() => toggleOpen(note.id)}
+                    aria-expanded={isOpen}
+                    aria-label={isOpen ? 'Fechar anotação' : 'Abrir anotação'}
+                    disabled={savingAll}
+                  >
+                    <span className="note-arrow" aria-hidden>{isOpen ? '▲' : '▼'}</span>
+                  </button>
+                  <button
+                    className="icon-btn"
+                    type="button"
+                    aria-label="Excluir anotação"
+                    onClick={() => onDelete(note)}
+                    disabled={isSaving || savingAll}
+                  >
+                    🗑️
+                  </button>
+                </div>
                 <button
                   type="button"
-                  className="note-summary"
-                  onClick={() => toggleOpen(note.id)}
-                  aria-expanded={isOpen}
+                  className="icon-btn note-drag-handle"
+                  aria-label="Reordenar"
+                  draggable={draggable}
                   disabled={savingAll}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onDragStart={(event) => handleDragStart(event, note.id)}
+                  onDragEnd={handleDragEnd}
+                  onTouchStart={(event) => handleTouchStart(event, note.id)}
                 >
-                  <span className="note-summary-title">{draft.title || 'Nova anotação'}</span>
-                  <span className="note-arrow" aria-hidden>{isOpen ? '▲' : '▼'}</span>
-                </button>
-                <button
-                  className="icon-btn"
-                  type="button"
-                  aria-label="Excluir anotação"
-                  onClick={() => onDelete(note)}
-                  disabled={isSaving || savingAll}
-                >
-                  🗑️
+                  {' '}
                 </button>
               </div>
+
+              {!isOpen && !!displayTags.length && (
+                <div className="chip-row">
+                  {displayTags.map((tag) => (
+                    <span key={tag} className="chip">{tag}</span>
+                  ))}
+                </div>
+              )}
 
               {isOpen && (
                 <div className="note-body">
                   <input
-                    className="input note-title-input"
-                    value={draft.title}
-                    onChange={(e) => handleChange(note.id, 'title', e.target.value)}
-                    placeholder="Nova anotação"
-                    disabled={savingAll}
-                  />
-
-                  <input
                     className="input note-tags-input"
                     value={draft.tagsString || ''}
                     onChange={(e) => handleChange(note.id, 'tagsString', e.target.value)}
-                    placeholder="Tags (ex: mago, vilão, npc)"
+                    onBlur={() => handleSave(note)}
+                    placeholder="Tags (ex: mago; vilão; npc)"
                     disabled={savingAll}
                   />
 
@@ -264,6 +333,7 @@ const NotesPanel = ({
                     onChange={(e) => handleChange(note.id, 'content', e.target.value)}
                     placeholder="Escreva suas anotações..."
                     rows={6}
+                    onBlur={() => handleSave(note)}
                     disabled={savingAll}
                   />
 

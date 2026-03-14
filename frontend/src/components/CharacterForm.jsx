@@ -56,7 +56,7 @@ const CharacterForm = ({ onCreate, loading }) => {
       appearance: form.appearance.trim() || undefined,
       history: form.history.trim() || undefined,
       tags: form.tags
-        .split(',')
+        .split(';')
         .map((tag) => tag.trim().toLowerCase())
         .filter(Boolean),
       generate
@@ -129,12 +129,12 @@ const CharacterForm = ({ onCreate, loading }) => {
         </div>
 
         <div className="field-group">
-          <label className="label" htmlFor="char-tags">Tags (separe por vírgula)</label>
+          <label className="label" htmlFor="char-tags">Tags (separe por ponto e vírgula)</label>
           <input
             id="char-tags"
             className="input input-glow"
             type="text"
-            placeholder="mago, vilão, npc, principal"
+            placeholder="mago; vilão; npc; principal"
             value={form.tags}
             onChange={(e) => handleChange('tags', e.target.value)}
             disabled={loading}
@@ -142,7 +142,7 @@ const CharacterForm = ({ onCreate, loading }) => {
           {form.tags && (
             <div className="chip-row">
               {form.tags
-                .split(',')
+                .split(';')
                 .map((tag) => tag.trim())
                 .filter(Boolean)
                 .map((tag) => (

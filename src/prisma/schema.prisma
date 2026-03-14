@@ -119,6 +119,7 @@ model CharacterTag {
 model AnnotationTag {
   annotationId Int @map("annotation_id")
   tagId        Int @map("tag_id")
+  position     Int @default(0)
   annotation   Annotation @relation(fields: [annotationId], references: [id], onDelete: Cascade)
   tag          Tag        @relation(fields: [tagId], references: [id], onDelete: Cascade)
 

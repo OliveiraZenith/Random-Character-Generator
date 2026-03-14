@@ -24,9 +24,9 @@ const CharacterDetails = ({ name, form, onFieldChange, onSave, onBack, loading, 
         />
 
         <EditableField
-          label="Tags (separe por vírgula)"
+          label="Tags (separe por ponto e vírgula)"
           name="tags"
-          placeholder="mago, vilão, npc, principal"
+          placeholder="mago; vilão; npc; principal"
           value={form.tags || ''}
           onChange={(val) => onFieldChange('tags', val)}
         />
@@ -34,7 +34,7 @@ const CharacterDetails = ({ name, form, onFieldChange, onSave, onBack, loading, 
         {form.tags && (
           <div className="chip-row chip-row-compact" aria-label="Tags atuais">
             {form.tags
-              .split(',')
+              .split(';')
               .map((tag) => tag.trim())
               .filter(Boolean)
               .map((tag) => (

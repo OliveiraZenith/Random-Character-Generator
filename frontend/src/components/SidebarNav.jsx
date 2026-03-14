@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import DiceRoller from './DiceRoller.jsx';
 import { navigateWithTransition } from '../services/navigation.js';
+import gridIcon from '../imagens/icons/grid-icon.svg';
 
 const SidebarNav = ({ worldId }) => {
   const [open, setOpen] = useState(false);
@@ -49,14 +50,25 @@ const SidebarNav = ({ worldId }) => {
     <>
       <DiceRoller visible={!open} />
       {!open && (
-        <button
-          type="button"
-          className={`nav-toggle ${open ? 'active' : ''}`}
-          aria-label="Abrir menu lateral"
-          onClick={toggle}
-        >
-          ☰
-        </button>
+        <>
+          <button
+            type="button"
+            className={`nav-toggle ${open ? 'active' : ''}`}
+            aria-label="Abrir menu lateral"
+            onClick={toggle}
+          >
+            ☰
+          </button>
+
+          <button
+            type="button"
+            className="grid-toggle"
+            aria-label="Abrir editor de grid visual"
+            onClick={() => handleNavigate(safePath(`/worlds/${worldId}/grid`))}
+          >
+            <img src={gridIcon} alt="Ícone de grid" />
+          </button>
+        </>
       )}
 
       {open && <div className="nav-overlay" onClick={close} aria-hidden />}

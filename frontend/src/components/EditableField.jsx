@@ -4,6 +4,7 @@ const EditableField = ({
   value,
   placeholder,
   onChange,
+  onBlur,
   options = [],
   rows = 4,
   name
@@ -13,6 +14,7 @@ const EditableField = ({
     value: value ?? '',
     placeholder,
     onChange: (e) => onChange(e.target.value),
+    onBlur,
     name
   };
 

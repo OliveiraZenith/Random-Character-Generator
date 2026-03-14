@@ -17,7 +17,7 @@ const normalizePayload = (form) => ({
   appearance: form.appearance?.trim() || null,
   history: form.history?.trim() || null,
   tags: (form.tags || '')
-    .split(',')
+    .split(';')
     .map((tag) => tag.trim().toLowerCase())
     .filter(Boolean)
 });
@@ -99,7 +99,7 @@ const CharacterView = () => {
           race: data.race || '',
           appearance: data.appearance || '',
           history: data.story || data.history || '',
-          tags: mergedTags.join(', ')
+          tags: mergedTags.join('; ')
         };
         setForm(base);
         setOriginal(base);
@@ -154,7 +154,7 @@ const CharacterView = () => {
         race: updated.race || '',
         appearance: updated.appearance || '',
         history: updated.story || updated.history || '',
-        tags: tags.join(', ')
+        tags: tags.join('; ')
       };
       setForm(next);
       setOriginal(next);
