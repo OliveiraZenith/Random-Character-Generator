@@ -8,18 +8,18 @@ const maxDicePerGroup = 50;
 const examples = [
   {
     title: 'Exemplo 1',
-    input: '2d10',
-    description: 'Isso jogará dois dados de dez lados'
-  },
-  {
-    title: 'Exemplo 2',
     input: '3d20 + 5',
     description: 'Isso jogará três dados de vinte lados e somará 5 em cada resultado do dado'
   },
   {
-    title: 'Exemplo 3',
+    title: 'Exemplo 2',
     input: '3d20 + 5; 2d10 - 2',
     description: 'Isso jogará três dados de vinte lados e somará 5 em cada resultado, e também jogará dois dados de dez lados tirando 2 de cada resultado'
+  },
+  {
+    title: 'Como funciona o ND',
+    input: 'o nível do desafio',
+    description: 'Preencha um número para destacar em azul os resultados que forem iguais ou maiores que ND. Falha crítica = vermelho. Acerto crítico = verde.'
   }
 ];
 
@@ -79,9 +79,16 @@ const DiceRoller = ({ visible = true }) => {
   const [value, setValue] = useState('');
   const [error, setError] = useState('');
   const [result, setResult] = useState(null);
+  const [ndValue, setNdValue] = useState('');
   const inputRef = useRef(null);
 
   const defaultPlaceholder = useMemo(() => 'Ex: 2d10 + 5; 1d20 - 2', []);
+  const ndThreshold = useMemo(() => {
+    const raw = String(ndValue).trim();
+    if (!raw) return null;
+    const numeric = Number(raw);
+    return Number.isFinite(numeric) ? numeric : null;
+  }, [ndValue]);
 
   const close = () => {
     setOpen(false);
@@ -149,6 +156,14 @@ const DiceRoller = ({ visible = true }) => {
                 placeholder={defaultPlaceholder}
                 aria-label="Expressão de dados"
               />
+              <input
+                className="dice-nd-input"
+                value={ndValue}
+                onChange={(e) => setNdValue(e.target.value)}
+                placeholder="ND"
+                aria-label="Nível de Desafio (opcional)"
+                inputMode="numeric"
+              />
               <button className="dice-action" type="submit" aria-label="Rolar dados">
                 <img src={searchIcon} alt="Rolar" />
               </button>
@@ -163,12 +178,25 @@ const DiceRoller = ({ visible = true }) => {
                   {result.groups.map((group, index) => (
                     <div key={`${group.raw}-${index}`} className="dice-group-row">
                       <div className="dice-group-rolls">
-                        {group.results.map((item, idx) => (
-                          <span key={`${item.expression}-${idx}`} className="dice-roll-chip">
-                            <span className="dice-roll-formula">{item.expression}=</span>
-                            <span className="dice-roll-value">{item.adjusted}</span>
-                          </span>
-                        ))}
+                        {group.results.map((item, idx) => {
+                          const isCriticalHigh = item.base === group.faces;
+                          const isCriticalLow = item.base === 1;
+                          const meetsNd = ndThreshold !== null && item.adjusted >= ndThreshold;
+                          const chipClass = [
+                            'dice-roll-chip',
+                            isCriticalHigh && 'dice-roll-critical-high',
+                            isCriticalLow && 'dice-roll-critical-low',
+                            !isCriticalHigh && !isCriticalLow && meetsNd && 'dice-roll-nd'
+                          ].filter(Boolean).join(' ');
+                          const showFormula = Boolean(group.sign);
+
+                          return (
+                            <span key={`${item.expression}-${idx}`} className={chipClass}>
+                              {showFormula && <span className="dice-roll-formula">{item.expression}=</span>}
+                              <span className="dice-roll-value">{item.adjusted}</span>
+                            </span>
+                          );
+                        })}
                         <span className="dice-group-total">Total do grupo: {group.total}</span>
                       </div>
                     </div>

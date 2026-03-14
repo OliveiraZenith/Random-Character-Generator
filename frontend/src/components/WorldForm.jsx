@@ -58,7 +58,7 @@ const WorldForm = () => {
     <div className="create-card fade-in">
       <h1 className="create-title">Crie seu mundo</h1>
       <form className="create-form" onSubmit={handleSubmit}>
-        <label className="label" htmlFor="world-name">Nome do mundo</label>
+        <label className="label" htmlFor="world-name"></label>
         <input
           id="world-name"
           className="input input-glow"

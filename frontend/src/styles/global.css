@@ -1043,7 +1043,7 @@ body.visual-editor-mode {
 
 .dice-input-row {
   display: grid;
-  grid-template-columns: 1fr 54px;
+  grid-template-columns: 1fr 82px 54px;
   gap: 10px;
   margin-bottom: 12px;
 }
@@ -1062,6 +1062,26 @@ body.visual-editor-mode {
 .dice-input::placeholder { color: var(--muted); }
 
 .dice-input:focus {
+  outline: none;
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 3px rgba(240, 180, 107, 0.2);
+}
+
+.dice-nd-input {
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(240, 180, 107, 0.4);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font-size: 14px;
+  text-align: center;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dice-nd-input::placeholder { color: var(--muted); }
+
+.dice-nd-input:focus {
   outline: none;
   border-color: var(--accent-2);
   box-shadow: 0 0 0 3px rgba(240, 180, 107, 0.2);
@@ -1151,6 +1171,24 @@ body.visual-editor-mode {
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
 }
 
+.dice-roll-critical-high {
+  background: linear-gradient(135deg, rgba(46, 102, 66, 0.45), rgba(24, 66, 42, 0.8));
+  border-color: rgba(143, 218, 158, 0.9);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.45), 0 0 14px rgba(143, 218, 158, 0.6);
+}
+
+.dice-roll-critical-low {
+  background: linear-gradient(135deg, rgba(122, 36, 36, 0.55), rgba(82, 20, 20, 0.85));
+  border-color: rgba(255, 123, 123, 0.9);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.45), 0 0 14px rgba(255, 123, 123, 0.6);
+}
+
+.dice-roll-nd {
+  background: linear-gradient(135deg, rgba(40, 78, 122, 0.5), rgba(20, 42, 82, 0.8));
+  border-color: rgba(120, 170, 255, 0.85);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.45), 0 0 14px rgba(120, 170, 255, 0.6);
+}
+
 .dice-roll-formula {
   font-size: 12px;
   color: var(--muted);
@@ -1161,6 +1199,21 @@ body.visual-editor-mode {
   font-weight: 800;
   color: #fdf7ed;
   text-shadow: 0 0 12px rgba(240, 180, 107, 0.4);
+}
+
+.dice-roll-critical-high .dice-roll-value {
+  color: #d8ffe6;
+  text-shadow: 0 0 10px rgba(143, 218, 158, 0.8);
+}
+
+.dice-roll-critical-low .dice-roll-value {
+  color: #ffe0e0;
+  text-shadow: 0 0 10px rgba(255, 123, 123, 0.8);
+}
+
+.dice-roll-nd .dice-roll-value {
+  color: #dbe9ff;
+  text-shadow: 0 0 10px rgba(120, 170, 255, 0.85);
 }
 
 .dice-group-total {
@@ -1242,7 +1295,7 @@ body.visual-editor-mode {
 @media (max-width: 600px) {
   .dice-modal { padding: 18px 16px 14px; }
   .dice-modal::before { display: none; }
-  .dice-input-row { grid-template-columns: 1fr 48px; }
+  .dice-input-row { grid-template-columns: 1fr 70px 48px; }
   .nav-toggle { top: 12px; left: 12px; }
   .dice-toggle { top: 64px; left: 12px; }
   .dice-result { max-height: 55vh; }
