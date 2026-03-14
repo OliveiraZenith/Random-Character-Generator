@@ -1,5 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 
+const normalizeTagsInput = (raw) => {
+  if (!raw) return [];
+  return Array.from(new Set(String(raw)
+    .split(',')
+    .map((tag) => tag.trim().toLowerCase())
+    .filter(Boolean)));
+};
+
 const NotesPanel = ({
   notes,
   loading,
@@ -25,7 +33,8 @@ const NotesPanel = ({
         {
           // Treat placeholder title as empty so the placeholder shows and the user types directly
           title: note.title === 'Nova anotação' ? '' : note.title,
-          content: note.content
+          content: note.content,
+          tagsString: (note.tags || []).join(', ')
         }
       ])
     );
@@ -120,10 +129,12 @@ const NotesPanel = ({
     }
   };
 
-  const getDraft = (note) => drafts[note.id] || { title: note.title, content: note.content };
+  const getDraft = (note) => drafts[note.id] || { title: note.title, content: note.content, tagsString: (note.tags || []).join(', ') };
 
   const handleSave = async (note) => {
-    const payload = getDraft(note);
+    const draft = getDraft(note);
+    const tags = normalizeTagsInput(draft.tagsString);
+    const payload = { title: draft.title, content: draft.content, tags };
     return onSave?.(note.id, payload);
   };
 
@@ -236,6 +247,14 @@ const NotesPanel = ({
                     value={draft.title}
                     onChange={(e) => handleChange(note.id, 'title', e.target.value)}
                     placeholder="Nova anotação"
+                    disabled={savingAll}
+                  />
+
+                  <input
+                    className="input note-tags-input"
+                    value={draft.tagsString || ''}
+                    onChange={(e) => handleChange(note.id, 'tagsString', e.target.value)}
+                    placeholder="Tags (ex: mago, vilão, npc)"
                     disabled={savingAll}
                   />
 

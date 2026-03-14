@@ -88,6 +88,7 @@ model Annotation {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   world     World    @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  annotationTags AnnotationTag[]
 
   @@map("anotacoes")
 }
@@ -98,6 +99,7 @@ model Tag {
   createdAt DateTime        @default(now()) @map("created_at")
   updatedAt DateTime        @updatedAt @map("updated_at")
   characterTags CharacterTag[]
+  annotationTags AnnotationTag[]
 
   @@map("tags")
 }
@@ -112,6 +114,18 @@ model CharacterTag {
   @@index([tagId], map: "idx_character_tag_tag")
   @@index([characterId], map: "idx_character_tag_character")
   @@map("character_tags")
+}
+
+model AnnotationTag {
+  annotationId Int @map("annotation_id")
+  tagId        Int @map("tag_id")
+  annotation   Annotation @relation(fields: [annotationId], references: [id], onDelete: Cascade)
+  tag          Tag        @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([annotationId, tagId])
+  @@index([tagId], map: "idx_annotation_tag_tag")
+  @@index([annotationId], map: "idx_annotation_tag_annotation")
+  @@map("annotation_tags")
 }
 
 model PasswordReset {

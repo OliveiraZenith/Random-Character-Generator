@@ -35,6 +35,15 @@ const filterCharactersByTags = (characters, search) => {
   });
 };
 
+const filterNotesByTags = (notes, search) => {
+  const filters = normalizeTagString(search);
+  if (!filters.length) return notes;
+  return notes.filter((note) => {
+    const tagSet = new Set((note.tags || []).map((t) => t.toLowerCase()));
+    return filters.every((tag) => tagSet.has(tag));
+  });
+};
+
 const parseWorldId = () => {
   const parts = window.location.pathname.split('/').filter(Boolean);
   const idx = parts.findIndex((segment) => segment === 'worlds');
@@ -56,6 +65,7 @@ const Characters = () => {
   const [reorderingCharacters, setReorderingCharacters] = useState(false);
   const [reorderingNotes, setReorderingNotes] = useState(false);
   const [searchTags, setSearchTags] = useState('');
+  const [searchScope, setSearchScope] = useState({ characters: true, notes: true });
 
   const token = useMemo(() => localStorage.getItem('rcc_token'), []);
   const worldId = useMemo(() => parseWorldId(), []);
@@ -270,6 +280,27 @@ const Characters = () => {
     }
   };
 
+  const toggleScope = (key) => {
+    setSearchScope((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      // Ensure at least one stays active
+      if (!next.characters && !next.notes) {
+        next[key] = true;
+      }
+      return next;
+    });
+  };
+
+  const filteredCharacters = useMemo(() => {
+    if (!searchScope.characters || !searchTags.trim()) return characters;
+    return filterCharactersByTags(characters, searchTags);
+  }, [characters, searchScope.characters, searchTags]);
+
+  const filteredNotes = useMemo(() => {
+    if (!searchScope.notes || !searchTags.trim()) return notes;
+    return filterNotesByTags(notes, searchTags);
+  }, [notes, searchScope.notes, searchTags]);
+
   return (
     <>
       <SidebarNav worldId={worldId} />
@@ -283,21 +314,39 @@ const Characters = () => {
 
               <div className="field-group">
                 <label className="label" htmlFor="tag-search">Buscar por tag</label>
-                <input
-                  id="tag-search"
-                  className="input input-glow"
-                  type="text"
-                  placeholder="mago, vilão, npc"
-                  value={searchTags}
-                  onChange={(e) => setSearchTags(e.target.value)}
-                />
+                <div className="tag-search-row">
+                  <input
+                    id="tag-search"
+                    className="input input-glow"
+                    type="text"
+                    placeholder="mago, vilão, npc"
+                    value={searchTags}
+                    onChange={(e) => setSearchTags(e.target.value)}
+                  />
+                  <div className="tag-filter-buttons" role="group" aria-label="Aplicar busca por">
+                    <button
+                      type="button"
+                      className={`tag-filter-btn ${searchScope.characters ? 'active' : ''}`}
+                      onClick={() => toggleScope('characters')}
+                    >
+                      Personagens
+                    </button>
+                    <button
+                      type="button"
+                      className={`tag-filter-btn ${searchScope.notes ? 'active' : ''}`}
+                      onClick={() => toggleScope('notes')}
+                    >
+                      Anotações
+                    </button>
+                  </div>
+                </div>
               </div>
 
               {error && <div className="alert error" role="alert">{error}</div>}
               {loading && <div className="worlds-loading">Carregando personagens...</div>}
 
               <CharacterList
-                characters={filterCharactersByTags(characters, searchTags)}
+                characters={filteredCharacters}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onReorder={handleReorder}
@@ -310,7 +359,7 @@ const Characters = () => {
             </div>
 
             <NotesPanel
-              notes={notes}
+              notes={filteredNotes}
               loading={notesLoading}
               error={notesError}
               savingId={noteSavingId}

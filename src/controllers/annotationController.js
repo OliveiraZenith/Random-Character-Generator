@@ -1,5 +1,41 @@
 import prisma from '../prisma/client.js';
 
+const normalizeTagsInput = (raw) => {
+  if (!raw) return [];
+  const list = Array.isArray(raw) ? raw : String(raw).split(',');
+  const cleaned = list
+    .map((tag) => String(tag).trim().toLowerCase())
+    .filter((tag) => tag.length);
+  return [...new Set(cleaned)];
+};
+
+const upsertTags = async (names) => {
+  if (!names.length) return [];
+  const existing = await prisma.tag.findMany({ where: { name: { in: names } } });
+  const existingSet = new Set(existing.map((t) => t.name));
+  const missing = names.filter((name) => !existingSet.has(name));
+
+  if (missing.length) {
+    await prisma.tag.createMany({ data: missing.map((name) => ({ name })) });
+  }
+
+  return prisma.tag.findMany({ where: { name: { in: names } } });
+};
+
+const replaceAnnotationTags = async (annotationId, tagIds) => {
+  await prisma.annotationTag.deleteMany({ where: { annotationId } });
+  if (!tagIds.length) return;
+  await prisma.annotationTag.createMany({ data: tagIds.map((tagId) => ({ annotationId, tagId })), skipDuplicates: true });
+};
+
+const serializeAnnotation = (annotation) => {
+  const { annotationTags = [], world, ...rest } = annotation;
+  return {
+    ...rest,
+    tags: annotationTags.map((at) => at.tag?.name).filter(Boolean)
+  };
+};
+
 const ensureWorldOwnership = async (worldId, userId) => {
   const world = await prisma.world.findUnique({ where: { id: worldId } });
   if (!world || world.userId !== userId) return null;
@@ -16,13 +52,14 @@ export const listAnnotationsByWorld = async (req, res) => {
 
     const notes = await prisma.annotation.findMany({
       where: { worldId: world.id },
+      include: { annotationTags: { include: { tag: true } } },
       orderBy: [
         { order: 'desc' },
         { updatedAt: 'desc' }
       ]
     });
 
-    return res.status(200).json(notes);
+    return res.status(200).json(notes.map(serializeAnnotation));
   } catch (error) {
     return res.status(500).json({ message: 'Failed to list annotations.', error: error.message });
   }
@@ -31,7 +68,7 @@ export const listAnnotationsByWorld = async (req, res) => {
 export const createAnnotation = async (req, res) => {
   try {
     const worldId = Number(req.params.worldId || req.body.worldId);
-    const { title = 'Nova anotação', content = '' } = req.body;
+    const { title = 'Nova anotação', content = '', tags: rawTags } = req.body;
 
     const world = await ensureWorldOwnership(worldId, req.userId);
     if (!world) {
@@ -40,16 +77,28 @@ export const createAnnotation = async (req, res) => {
 
     const currentCount = await prisma.annotation.count({ where: { worldId: world.id } });
 
+    const tagNames = normalizeTagsInput(rawTags);
+    const tags = await upsertTags(tagNames);
+
     const note = await prisma.annotation.create({
       data: {
         worldId: world.id,
         title: title.trim() || 'Sem título',
         content: content || '',
-        order: currentCount + 1
-      }
+        order: currentCount + 1,
+        annotationTags: tags.length
+          ? {
+              createMany: {
+                data: tags.map((tag) => ({ tagId: tag.id })),
+                skipDuplicates: true
+              }
+            }
+          : undefined
+      },
+      include: { annotationTags: { include: { tag: true } } }
     });
 
-    return res.status(201).json(note);
+    return res.status(201).json(serializeAnnotation(note));
   } catch (error) {
     return res.status(500).json({ message: 'Failed to create annotation.', error: error.message });
   }
@@ -67,17 +116,30 @@ export const updateAnnotation = async (req, res) => {
       return res.status(404).json({ message: 'Annotation not found.' });
     }
 
-    const { title, content } = req.body;
+    const { title, content, tags: rawTags } = req.body;
+
+    const tagNames = rawTags !== undefined ? normalizeTagsInput(rawTags) : null;
+    const tags = tagNames ? await upsertTags(tagNames) : null;
 
     const updated = await prisma.annotation.update({
       where: { id },
       data: {
         title: title !== undefined ? (title.trim() || 'Sem título') : existing.title,
         content: content !== undefined ? content : existing.content
-      }
+      },
+      include: { annotationTags: { include: { tag: true } } }
     });
 
-    return res.status(200).json(updated);
+    if (tags) {
+      await replaceAnnotationTags(updated.id, tags.map((t) => t.id));
+      const withTags = await prisma.annotation.findUnique({
+        where: { id: updated.id },
+        include: { annotationTags: { include: { tag: true } } }
+      });
+      return res.status(200).json(serializeAnnotation(withTags));
+    }
+
+    return res.status(200).json(serializeAnnotation(updated));
   } catch (error) {
     return res.status(500).json({ message: 'Failed to update annotation.', error: error.message });
   }
@@ -88,7 +150,7 @@ export const getAnnotation = async (req, res) => {
     const id = Number(req.params.id);
     const note = await prisma.annotation.findUnique({
       where: { id },
-      include: { world: true }
+      include: { world: true, annotationTags: { include: { tag: true } } }
     });
 
     if (!note || note.world.userId !== req.userId) {
@@ -96,7 +158,7 @@ export const getAnnotation = async (req, res) => {
     }
 
     const { world, ...payload } = note;
-    return res.status(200).json(payload);
+    return res.status(200).json(serializeAnnotation(payload));
   } catch (error) {
     return res.status(500).json({ message: 'Failed to fetch annotation.', error: error.message });
   }
@@ -158,13 +220,14 @@ export const reorderAnnotations = async (req, res) => {
 
     const reordered = await prisma.annotation.findMany({
       where: { worldId: world.id },
+      include: { annotationTags: { include: { tag: true } } },
       orderBy: [
         { order: 'desc' },
         { updatedAt: 'desc' }
       ]
     });
 
-    return res.status(200).json(reordered);
+    return res.status(200).json(reordered.map(serializeAnnotation));
   } catch (error) {
     console.error('[reorderAnnotations] error:', error);
     return res.status(500).json({ message: 'Failed to reorder annotations.', error: error.message });
